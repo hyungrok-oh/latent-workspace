@@ -1,0 +1,50 @@
+---
+import { getCollection, render } from "astro:content";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+
+export async function getStaticPaths() {
+  const experiments = await getCollection("experiments");
+  return experiments.map((experiment) => ({
+    params: { slug: experiment.slug },
+    props: { experiment },
+  }));
+}
+
+const { experiment } = Astro.props;
+const { Content } = await render(experiment);
+---
+
+<BaseLayout title={`${experiment.data.title} | Latent Workspace`} description={experiment.data.description}>
+  <article class="article-shell">
+    <header class="article-header">
+      <p class="eyebrow">Experiment</p>
+      <h1>{experiment.data.title}</h1>
+      <p>{experiment.data.description}</p>
+      <dl>
+        <div>
+          <dt>Status</dt>
+          <dd>{experiment.data.status}</dd>
+        </div>
+        <div>
+          <dt>Target</dt>
+          <dd>{experiment.data.target}</dd>
+        </div>
+        <div>
+          <dt>Compute</dt>
+          <dd>{experiment.data.compute}</dd>
+        </div>
+        {
+          experiment.data.sourcePath && (
+            <div>
+              <dt>Source</dt>
+              <dd>{experiment.data.sourcePath}</dd>
+            </div>
+          )
+        }
+      </dl>
+    </header>
+    <div class="article-content">
+      <Content />
+    </div>
+  </article>
+</BaseLayout>
