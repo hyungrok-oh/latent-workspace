@@ -1,0 +1,72 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+
+const readingQueue = [
+  {
+    title: "Verbalizable Representations Form a Global Workspace in Language Models",
+    status: "Published note",
+    track: "Interpretability",
+    why: "The anchor paper for J-lens, J-space, verbalizable internal representations, and safety-relevant workspace auditing.",
+    href: "https://transformer-circuits.pub/2026/workspace/index.html",
+  },
+  {
+    title: "Natural Language Autoencoders Produce Unsupervised Explanations of LLM Activations",
+    status: "Published note",
+    track: "Interpretability",
+    why: "A richer text-bottleneck complement to J-lens for explaining activations and auditing hidden model states.",
+    href: "https://transformer-circuits.pub/2026/nla/index.html",
+  },
+  {
+    title: "Tracing the Thoughts of a Large Language Model",
+    status: "Next",
+    track: "Interpretability / Safety",
+    why: "Connects circuit tracing to planning, hallucination, refusals, and jailbreak-relevant internal mechanisms.",
+    href: "https://www.anthropic.com/research/tracing-thoughts-language-model",
+  },
+  {
+    title: "Agentic Misalignment: How LLMs Could Be Insider Threats",
+    status: "Queued",
+    track: "Agent Architecture / Safety",
+    why: "Moves from model internals to goal-directed tool use, situational awareness, and misaligned agent behavior.",
+    href: "https://www.anthropic.com/research/agentic-misalignment",
+  },
+  {
+    title: "Constitutional AI: Harmlessness from AI Feedback",
+    status: "Queued",
+    track: "Safety",
+    why: "Provides the baseline Anthropic alignment method to compare against interpretability-first auditing and shaping.",
+    href: "https://www.anthropic.com/research/constitutional-ai-harmlessness-from-ai-feedback",
+  },
+];
+---
+
+<BaseLayout
+  title="Roadmap | Latent Workspace"
+  description="The Latent Workspace reading roadmap for LLM and agent interpretability."
+>
+  <section class="roadmap-shell">
+    <div class="section-heading">
+      <p class="eyebrow">Reading Roadmap</p>
+      <h1>From internal representations to agent safety.</h1>
+      <p>
+        The sequence starts with interpretability tools, then moves toward agentic behavior
+        and safety interventions. Each note should separate claim, method, evidence,
+        limitation, and follow-up experiments.
+      </p>
+    </div>
+
+    <div class="timeline">
+      {readingQueue.map((item, index) => (
+        <article class="timeline-item">
+          <span class="timeline-index">{String(index + 1).padStart(2, "0")}</span>
+          <div>
+            <p class="post-track">{item.track}</p>
+            <h2><a href={item.href}>{item.title}</a></h2>
+            <p>{item.why}</p>
+          </div>
+          <strong>{item.status}</strong>
+        </article>
+      ))}
+    </div>
+  </section>
+</BaseLayout>

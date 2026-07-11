@@ -29,7 +29,30 @@ const { Content } = await render(post);
           <dt>Status</dt>
           <dd>{post.data.status}</dd>
         </div>
+        {
+          post.data.sourceUrl && (
+            <div>
+              <dt>Source</dt>
+              <dd>
+                <a href={post.data.sourceUrl}>Original paper</a>
+              </dd>
+            </div>
+          )
+        }
+        {
+          post.data.codeUrl && (
+            <div>
+              <dt>Code</dt>
+              <dd>
+                <a href={post.data.codeUrl}>Repository</a>
+              </dd>
+            </div>
+          )
+        }
       </dl>
+      <div class="tag-list" aria-label="Tags">
+        {post.data.tags.map((tag) => <span>{tag}</span>)}
+      </div>
     </header>
     <div class="article-content">
       <Content />
