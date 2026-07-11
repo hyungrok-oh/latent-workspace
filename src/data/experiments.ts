@@ -1,7 +1,7 @@
 export type Experiment = {
   id: string;
   title: string;
-  status: "planned" | "code audit" | "local toy" | "remote candidate";
+  status: "planned" | "code audit" | "local toy" | "activation scaffold" | "remote candidate";
   target: string;
   compute: string;
   goal: string;
@@ -35,5 +35,14 @@ export const experiments: Experiment[] = [
     compute: "Separate 48GB macOS machine",
     goal: "Optionally expose a local-network inference endpoint for small open models so experiments can request completions or activations remotely.",
     nextStep: "Decide later whether to use Ollama, llama.cpp server, MLX, or a small custom HTTP service.",
+  },
+  {
+    id: "004-tiny-model-logit-lens",
+    title: "Tiny-Model Logit Lens",
+    status: "activation scaffold",
+    target: "Open-model hidden-state readouts",
+    compute: "Current macOS laptop for env check; 48GB Mac recommended for real runs",
+    goal: "Extract hidden states from a small causal language model and read each layer through the model vocabulary.",
+    nextStep: "Install optional torch/transformers dependencies on a model-capable Mac and run the default tiny GPT-2 pipeline.",
   },
 ];
