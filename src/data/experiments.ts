@@ -23,9 +23,9 @@ export const experiments: Experiment[] = [
     title: "Logit-Lens Toy Baseline",
     status: "local toy",
     target: "J-lens / workspace-style interpretability",
-    compute: "Current macOS laptop; tiny open model or synthetic transformer",
-    goal: "Build a small local lensing experiment that reads intermediate activations without needing Claude internals.",
-    nextStep: "Start with a tiny model, extract hidden states, apply unembedding readouts, and compare layers on controlled prompts.",
+    compute: "Current macOS laptop; dependency-free Python toy",
+    goal: "Run a small synthetic residual-stream experiment that reads intermediate states through an output vocabulary.",
+    nextStep: "Replace synthetic states with hidden states from a tiny open model when local model dependencies are available.",
   },
   {
     id: "003-remote-mac-model-endpoint",
