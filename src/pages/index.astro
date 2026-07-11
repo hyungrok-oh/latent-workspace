@@ -1,0 +1,63 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+
+const posts = (await getCollection("blog")).sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
+);
+const tracks = ["Interpretability", "Agent Architecture", "Safety"];
+const base = import.meta.env.BASE_URL.endsWith("/")
+  ? import.meta.env.BASE_URL
+  : `${import.meta.env.BASE_URL}/`;
+---
+
+<BaseLayout
+  title="Latent Workspace"
+  description="LLM and agent interpretability notes on hidden states, architectures, and safety."
+>
+  <section class="hero">
+    <div class="hero-copy">
+      <p class="eyebrow">LLM & Agent Interpretability Notes</p>
+      <h1>Latent Workspace</h1>
+      <p>
+        A public research notebook on LLM internals, agent behavior, and safety,
+        written in English and structured around a living knowledge graph.
+      </p>
+    </div>
+    <aside class="hero-panel" aria-label="Current study focus">
+      <span>Current focus</span>
+      <strong>Transformer Circuits 2026</strong>
+      <p>Global workspace representations, natural-language activation explanations, and auditing signals.</p>
+    </aside>
+  </section>
+
+  <section class="track-band" aria-label="Research tracks">
+    {tracks.map((track) => <span>{track}</span>)}
+  </section>
+
+  <section class="content-shell">
+    <div class="section-heading">
+      <p class="eyebrow">Notes</p>
+      <h2>Latest research posts</h2>
+    </div>
+    <div class="post-list">
+      {
+        posts.map((post) => (
+          <article class="post-card">
+            <div>
+              <p class="post-track">{post.data.track}</p>
+              <h3>
+                <a href={`${base}posts/${post.slug}/`}>{post.data.title}</a>
+              </h3>
+              <p>{post.data.description}</p>
+            </div>
+            <footer>
+              <span>{post.data.date.toLocaleDateString("en", { month: "short", day: "numeric", year: "numeric" })}</span>
+              <span>{post.data.status}</span>
+            </footer>
+          </article>
+        ))
+      }
+    </div>
+  </section>
+</BaseLayout>

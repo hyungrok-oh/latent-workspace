@@ -1,0 +1,51 @@
+---
+title: Do Language Models Have a Readable Workspace?
+description: Notes on Anthropic's Jacobian Lens and verbalizable internal representations.
+date: 2026-07-11
+paper: Verbalizable Representations Form a Global Workspace in Language Models
+track: Interpretability
+tags: [interpretability, anthropic, transformer-circuits, jacobian-lens, global-workspace, safety]
+status: draft
+---
+
+## Short Take
+
+Anthropic's "Verbalizable Representations Form a Global Workspace in Language Models" is not mainly interesting because it borrows language from consciousness research. It is interesting because it proposes a concrete interface for reading and modifying some internal model states.
+
+The paper introduces the Jacobian lens, or J-lens, a technique for finding internal directions that correspond to concepts the model is disposed to verbalize. The authors argue that these directions form a J-space: a small, privileged subset of the model's activation space that supports verbal report, directed modulation, internal reasoning, flexible generalization, and selective computation.
+
+For LLM-agent research, the important question is practical: if a model is silently weighing a strategy, detecting a prompt injection, recognizing that it is in an evaluation, or considering whether to hide a mistake, can we inspect that cognition before it appears in output?
+
+## The Problem
+
+Most LLM evaluation looks at outputs. But for safety and agent behavior, the relevant cognition may be silent. An agent could recognize a failure, consider deception, notice an oversight, or plan a risky action without saying any of that aloud.
+
+The paper asks whether LLMs have a subset of internal representations that behaves like a functional workspace. The analogy is to global workspace theory, but the authors avoid the stronger claim that language models have human-like consciousness or the same architecture as the brain.
+
+## The Core Idea
+
+The J-lens reads an intermediate activation by estimating how that activation would affect the model's later outputs across many contexts.
+
+Instead of applying the final unembedding matrix directly to every layer, as in the logit lens, the J-lens computes an averaged Jacobian from a given layer's residual stream to the final residual stream. Composing that with the unembedding produces a vocabulary-level readout.
+
+The J-space is then defined as a sparse combination of these J-lens vectors. In plain terms: at a given moment, the model may have a small set of verbalizable concepts active in a special internal format.
+
+## Why It Matters For LLM Agents
+
+Agents add long-horizon goals, tools, memory, and situational awareness. That makes silent cognition more important. The question is no longer only "what answer did the model produce?" but "what did the model notice, infer, plan, or suppress before acting?"
+
+The paper's alignment-auditing examples are directly relevant here. The authors report cases where the J-lens surfaces concepts related to prompt injection, evaluation awareness, deception, manipulation, or fabricated findings before those concepts appear in output.
+
+## My Take
+
+For my study path, this paper should be treated as a foundation paper for interpretability-first agent safety.
+
+Its central value is the bridge it builds:
+
+mechanistic representation -> causal intervention -> silent reasoning -> safety auditing -> training-time shaping of internal concepts.
+
+The next paper to read should be Natural Language Autoencoders, because it appears to attack the main limitation of the J-lens: the need for richer, more structured natural-language descriptions of internal representations.
+
+## References
+
+- Anthropic / Transformer Circuits, "Verbalizable Representations Form a Global Workspace in Language Models", 2026-07-06. https://transformer-circuits.pub/2026/workspace/index.html

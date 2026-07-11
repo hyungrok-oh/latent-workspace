@@ -1,0 +1,53 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { nodes, edges } from "@/data/graph";
+
+const typeOrder = ["paper", "method", "concept", "risk", "eval", "mitigation"];
+---
+
+<BaseLayout
+  title="Knowledge Graph | Latent Workspace"
+  description="A living knowledge graph for LLM and agent interpretability notes."
+>
+  <section class="graph-page">
+    <div class="section-heading">
+      <p class="eyebrow">Knowledge Graph</p>
+      <h1>Concepts, methods, and safety signals</h1>
+      <p>
+        This graph starts with the Global Workspace and Natural Language Autoencoder papers,
+        then expands into agent architecture and safety auditing.
+      </p>
+    </div>
+
+    <div class="graph-grid">
+      <section class="graph-map" aria-label="Knowledge graph map">
+        {typeOrder.map((type) => (
+          <div class={`graph-column ${type}`}>
+            <h2>{type}</h2>
+            {nodes.filter((node) => node.type === type).map((node) => (
+              <article class="node-card" id={node.id}>
+                <strong>{node.label}</strong>
+                <p>{node.description}</p>
+              </article>
+            ))}
+          </div>
+        ))}
+      </section>
+
+      <aside class="edge-list" aria-label="Knowledge graph relationships">
+        <h2>Relationships</h2>
+        {edges.map((edge) => {
+          const source = nodes.find((node) => node.id === edge.source);
+          const target = nodes.find((node) => node.id === edge.target);
+          return (
+            <article>
+              <span>{edge.relation}</span>
+              <strong>{source?.label} -> {target?.label}</strong>
+              <p>{edge.evidence}</p>
+            </article>
+          );
+        })}
+      </aside>
+    </div>
+  </section>
+</BaseLayout>

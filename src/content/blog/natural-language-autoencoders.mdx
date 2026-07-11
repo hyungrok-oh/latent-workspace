@@ -1,0 +1,63 @@
+---
+title: Can a Model Explain Its Own Activations?
+description: Notes on Natural Language Autoencoders as a text bottleneck for interpreting LLM internals.
+date: 2026-07-11
+paper: Natural Language Autoencoders Produce Unsupervised Explanations of LLM Activations
+track: Interpretability
+tags: [interpretability, anthropic, transformer-circuits, nla, activation-verbalizer, activation-reconstructor, safety]
+status: draft
+---
+
+## Short Take
+
+Natural Language Autoencoders are one of the most interesting interpretability ideas in Anthropic's recent work because they turn activation interpretation into a translation problem.
+
+The setup is simple to state:
+
+activation -> text explanation -> reconstructed activation
+
+An activation verbalizer writes an explanation of an activation. An activation reconstructor then tries to reconstruct the original activation using only that explanation. The explanation is rewarded when the reconstruction is accurate.
+
+This matters because the text explanation is not supervised by a human label. It is constrained by whether it preserves information about the activation.
+
+## The Problem
+
+LLMs process text internally as high-dimensional activation vectors. Mechanistic interpretability has developed tools for studying those vectors, including sparse autoencoders, attribution graphs, and lensing methods.
+
+But many of these tools still require expert interpretation. They may expose features, circuits, or token readouts, but they do not automatically produce a readable account of what the model is internally representing.
+
+Natural Language Autoencoders ask whether natural language itself can become the interpretability interface.
+
+## The Core Idea
+
+An NLA has two parts.
+
+The activation verbalizer, or AV, maps an activation vector to a text explanation.
+
+The activation reconstructor, or AR, maps that text explanation back to an activation vector.
+
+The round trip is the training signal. If the AR can reconstruct the original activation from the AV's words, then the explanation must have preserved some information about the activation.
+
+This is not the same as proving the explanation is perfectly faithful. But it is stronger than asking a model to produce a plausible story. The text has to carry reconstructive information.
+
+## Why It Matters For LLM Agents
+
+Agents create a gap between what a model thinks, what it says, and what it does.
+
+An agent might recognize that it is in an evaluation. It might plan a tool call. It might consider hiding an error. It might notice that an instruction is a prompt injection. None of these internal states has to appear in the final answer.
+
+NLAs are useful because they aim to read activations around decision points in natural language. That makes them especially relevant for agent auditing.
+
+## My Take
+
+The right way to understand NLAs is as a richer but riskier complement to the Jacobian lens.
+
+J-lens gives cheaper, token-level, more mechanically grounded readouts. NLAs give richer, more relational natural-language explanations, but they introduce hallucination and overtrust risks.
+
+The next research question is how to combine them: use J-lens for cheap grounded signals, use NLA for richer hypotheses, and require interventions or behavioral controls before turning those hypotheses into claims.
+
+## References
+
+- Anthropic, "Natural Language Autoencoders: Turning Claude's thoughts into text", 2026-05-07. https://www.anthropic.com/research/natural-language-autoencoders
+- Fraser-Taliente, Kantamneni, Ong et al., "Natural Language Autoencoders Produce Unsupervised Explanations of LLM Activations", Transformer Circuits, 2026. https://transformer-circuits.pub/2026/nla/index.html
+- Code release: https://github.com/kitft/natural_language_autoencoders
