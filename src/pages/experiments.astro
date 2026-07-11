@@ -1,0 +1,47 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { experiments } from "@/data/experiments";
+---
+
+<BaseLayout
+  title="Experiments | Latent Workspace"
+  description="Reproduction plans and local experiments for LLM and agent interpretability papers."
+>
+  <section class="experiments-shell">
+    <div class="section-heading">
+      <p class="eyebrow">Experiments</p>
+      <h1>Reproduction as a ladder, not a binary.</h1>
+      <p>
+        Some papers can be run directly. Others require private model internals or
+        serious GPU compute. The goal is to record what can be verified locally,
+        what needs remote compute, and what remains a conceptual approximation.
+      </p>
+    </div>
+
+    <div class="experiment-grid">
+      {experiments.map((experiment) => (
+        <article class="experiment-card">
+          <div>
+            <span>{experiment.status}</span>
+            <h2>{experiment.title}</h2>
+            <p>{experiment.goal}</p>
+          </div>
+          <dl>
+            <div>
+              <dt>Target</dt>
+              <dd>{experiment.target}</dd>
+            </div>
+            <div>
+              <dt>Compute</dt>
+              <dd>{experiment.compute}</dd>
+            </div>
+            <div>
+              <dt>Next</dt>
+              <dd>{experiment.nextStep}</dd>
+            </div>
+          </dl>
+        </article>
+      ))}
+    </div>
+  </section>
+</BaseLayout>
