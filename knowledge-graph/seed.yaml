@@ -24,6 +24,26 @@ nodes:
     label: Global Workspace
     description: A limited representational workspace that supports report, modulation, flexible reasoning, and selective access.
 
+  - id: directed_modulation
+    type: concept
+    label: Directed Modulation
+    description: The ability to summon, hold, suppress, or compute with an internal concept when a task requires it.
+
+  - id: flexible_generalization
+    type: concept
+    label: Flexible Generalization
+    description: A representation can be moved across contexts and still be used by different downstream computations.
+
+  - id: selectivity
+    type: concept
+    label: Selectivity
+    description: Workspace-like representations are a limited subset of model computation rather than the whole activation space.
+
+  - id: internal_telemetry
+    type: eval
+    label: Internal Telemetry
+    description: Using internal readouts as partial evidence alongside transcripts, tool traces, memory, and visible plans.
+
   - id: alignment_auditing
     type: eval
     label: Alignment Auditing
@@ -82,17 +102,37 @@ edges:
 
   - source: j_space
     target: global_workspace
-    relation: related_to
-    evidence: The J-space satisfies several functional properties associated with a global workspace.
+    relation: approximates
+    evidence: The J-space satisfies several functional properties associated with a global workspace without reproducing the full brain architecture.
+
+  - source: j_space
+    target: directed_modulation
+    relation: supports
+    evidence: The paper reports that concepts can be held, summoned, or used internally when the task demands it.
+
+  - source: j_space
+    target: flexible_generalization
+    relation: supports
+    evidence: Workspace vectors moved from one context can be operated on by downstream computations in another context.
+
+  - source: j_space
+    target: selectivity
+    relation: exhibits
+    evidence: Ablating J-space affects some flexible reasoning tasks while leaving much routine processing relatively intact.
 
   - source: j_space
     target: alignment_auditing
     relation: supports
     evidence: The paper reports case studies where J-space readouts reveal silent strategic or situational assessments.
 
+  - source: j_space
+    target: internal_telemetry
+    relation: enables
+    evidence: For agents, J-space readouts can complement transcripts, tool calls, memory state, and visible plans around decision points.
+
   - source: counterfactual_reflection_training
     target: j_space
-    relation: mitigates
+    relation: shapes
     evidence: Reflection training appears to implant ethical concepts into J-space and improve honesty/deception benchmark behavior.
 
   - source: natural_language_autoencoders

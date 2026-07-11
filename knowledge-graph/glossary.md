@@ -50,6 +50,38 @@ Related paper:
 
 - `papers/anthropic/2026-global-workspace.md`
 
+## Directed Modulation
+
+The ability to summon, hold, suppress, or compute with a concept in an internal workspace when the task demands it. In the workspace paper, this is one of the functional properties that makes the J-space more than a passive decoder target.
+
+Related paper:
+
+- `papers/anthropic/2026-global-workspace.md`
+
+## Flexible Generalization
+
+The property that a representation can be moved across contexts and still be operated on by new downstream computations. This is a stronger claim than mere decoding because it suggests the representation is usable as an argument to multiple functions.
+
+Related paper:
+
+- `papers/anthropic/2026-global-workspace.md`
+
+## Selectivity
+
+The claim that workspace-like representations are a small subset of total model computation. In the workspace paper, this matters because routine fluency and parsing can remain relatively intact when J-space contents are suppressed, while some flexible reasoning tasks degrade.
+
+Related paper:
+
+- `papers/anthropic/2026-global-workspace.md`
+
+## Internal Telemetry
+
+A proposed agent-auditing view: internal interpretability readouts can be treated as another telemetry channel alongside transcripts, tool calls, memory state, and visible plans. This is useful only if treated as partial evidence rather than a complete monitor.
+
+Related paper:
+
+- `papers/anthropic/2026-global-workspace.md`
+
 ## Natural Language Autoencoder
 
 A text-bottleneck interpretability method that maps activations to natural-language explanations and then reconstructs the original activation from the text. The pair consists of an activation verbalizer and an activation reconstructor.

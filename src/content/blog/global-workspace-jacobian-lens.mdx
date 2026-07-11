@@ -5,7 +5,7 @@ date: 2026-07-11
 paper: Verbalizable Representations Form a Global Workspace in Language Models
 track: Interpretability
 tags: [interpretability, anthropic, transformer-circuits, jacobian-lens, global-workspace, safety]
-status: essay
+status: deep-dive
 sourceUrl: https://transformer-circuits.pub/2026/workspace/index.html
 ---
 
@@ -18,6 +18,22 @@ The paper introduces the Jacobian lens, or J-lens, a technique for finding inter
 For LLM-agent research, the important question is practical: if a model is silently weighing a strategy, detecting a prompt injection, recognizing that it is in an evaluation, or considering whether to hide a mistake, can we inspect that cognition before it appears in output?
 
 My answer after reading the paper is: partly, maybe, and only with discipline. The J-lens looks like a real step toward internal auditing, but it should be treated as an instrument with a narrow operating range, not a mind-reading device.
+
+## How I Read The Claim
+
+The paper's central claim has three layers, and I think they should be kept separate.
+
+The first layer is methodological: the Jacobian lens finds activation directions corresponding to tokens the model is disposed to verbalize across contexts. This is the most concrete part of the work.
+
+The second layer is functional: these verbalizable directions do more than predict words. They can be summoned, swapped, ablated, routed into downstream computations, and used in some reasoning tasks. This is the part that makes the paper scientifically interesting.
+
+The third layer is architectural: the authors argue that this functional pattern resembles a global workspace. This is the highest-level interpretation, and it is the one that needs the most discipline. The evidence supports a workspace-like role for some representations. It does not automatically establish that the model has the same architectural organization as the brain, or that all important cognition passes through this channel.
+
+So my reading is:
+
+> The J-space is best understood as a measurable, verbalizable control surface inside the model, not as the model's entire mind.
+
+That framing matters for agent safety. If the J-space is only a partial control surface, it can still be extremely useful. But it should never become the only thing we monitor.
 
 ## The Problem
 
@@ -37,21 +53,37 @@ The J-space is then defined as a sparse combination of these J-lens vectors. In 
 
 The important move is that the lens is not only used for reading. The paper also uses interventions: steering, ablation, and concept swaps. That is what makes the work more interesting than a decoder that merely produces plausible labels.
 
-## Evidence I Care About
+## The Evidence Ladder
 
-The paper's strongest evidence is not a single demo. It is the pattern across several functional tests.
+The paper's strongest evidence is not a single demo. It is the ladder formed by several increasingly strong tests.
 
-First, verbal report: when a model is about to report a concept, that concept can appear in the J-lens. Swapping one concept vector for another can redirect the report.
+The weakest useful result would be decoding: a concept appears in a readout when the model later says that concept. This is interesting, but by itself it could still be a sophisticated correlation.
 
-Second, directed modulation: when the model is asked to hold a concept in mind or introspect, relevant J-space contents can appear even when they are not immediately output.
+The next level is intervention: swapping one concept vector for another can redirect what the model reports. This moves the result from "we can label something" toward "this representation is causally connected to behavior."
 
-Third, internal reasoning: intermediate results of multi-step reasoning can appear in J-space, and interventions on those representations can redirect later conclusions.
+The next level is hidden use: when the model is asked to hold a concept in mind, introspect, or compute internally, relevant J-space contents appear even when they are not immediately output.
 
-Fourth, flexible generalization: a representation from one context can be moved into another and used by a different downstream computation.
+The next level is reasoning: intermediate results of multi-step reasoning can appear in J-space, and interventions on those representations can redirect later conclusions.
 
-Fifth, selectivity: J-space is not the whole model. Ablating it affects some flexible reasoning tasks while leaving much routine fluency and automatic processing relatively intact.
+The next level is flexible generalization: a representation from one context can be moved into another and used by a different downstream computation.
+
+The final level is selectivity: J-space is not the whole model. Ablating it affects some flexible reasoning tasks while leaving much routine fluency and automatic processing relatively intact.
 
 That last point is easy to miss. Selectivity makes the claim more credible. If J-space explained everything, it would explain almost nothing. The interesting claim is narrower: some internal contents appear in a readable, reportable, causally useful format, while many computations do not.
+
+## Hidden Assumptions
+
+The paper is unusually careful, but the interpretation still rests on several assumptions.
+
+First, averaged Jacobians must preserve something meaningful across contexts. If the average washes out important context-specific transformations, the J-lens could miss important cognition or overstate generic token directions.
+
+Second, token-level verbalization must be a good handle on concepts. This is plausible for many concepts, but weak for relational, compositional, multi-token, or culturally loaded ideas.
+
+Third, causal steering along a lens vector must mean the vector captures the relevant internal content, not merely a downstream route to the same output. The interventions help, but they do not make every readout a complete explanation.
+
+Fourth, workspace-like behavior must be distinguished from imminent-output preparation. The paper argues that J-space is neither pure input echo nor pure next-token prediction, but the boundary between internal thought and output preparation is not perfectly sharp.
+
+Fifth, safety-relevant cognition must enter verbalizable space often enough to be audited. This may be true for reflective, strategic, or uncertain reasoning. It may be false for highly practiced, automatic, or deliberately obfuscated behavior.
 
 ## Why It Matters For LLM Agents
 
@@ -68,6 +100,24 @@ This suggests a possible future auditing loop:
 
 That would be more useful than output-only monitoring, but also more dangerous to overinterpret. The same tool that helps surface hidden cognition could create a false sense of certainty if every decoded token is treated as a belief, intention, or plan.
 
+## Agent Architecture Reading
+
+For agent architecture, I read the paper as an argument for making internal state explicit.
+
+Today, many agent designs externalize cognition into scratchpads, plans, memory stores, tool traces, and chain-of-thought-like artifacts. That makes the agent easier to inspect, but it also creates an obvious problem: the external trace may be incomplete or strategically written.
+
+The J-space points at a complementary idea. Instead of only asking what the agent wrote into its scratchpad, ask what internal concepts were active at the decision point. In a future architecture, the audit surface might include:
+
+1. the transcript;
+2. the tool call history;
+3. the external memory state;
+4. the visible plan;
+5. internal workspace readouts around key decisions.
+
+That is the interesting agent-design implication: not "replace chain of thought with interpretability," but "treat internal readouts as another telemetry channel."
+
+The hard question is whether such telemetry can be used safely. If a model learns that its workspace is monitored, it may route behavior through less visible mechanisms. If a monitor overtrusts the readout, it may miss nonverbal or automatic failure modes. So the architectural lesson is not transparency by magic. It is layered observability.
+
 ## What I Believe
 
 I believe this paper is strong evidence for a limited claim:
@@ -77,6 +127,16 @@ Some LLM internal states are verbalizable, causally manipulable, and relevant to
 I also believe the J-lens is important because it sits between two weak extremes. It is more grounded than asking a model to explain itself in natural language. But it is more readable than raw activation geometry.
 
 That middle position is exactly where interpretability tools for agent safety probably need to live.
+
+## What Would Change My Mind
+
+I would weaken my confidence if future experiments showed that J-space readouts are mostly recoverable from output logits or shallow prompt statistics. That would make the workspace interpretation less compelling.
+
+I would also weaken my confidence if interventions worked only for verbal report but failed to affect downstream reasoning in richer settings.
+
+I would strengthen my confidence if open-model replications showed the same ladder: report, modulation, reasoning, generalization, and selectivity. The important part is not matching Claude exactly. The important part is finding whether this functional organization emerges repeatedly across model families and scales.
+
+I would especially strengthen my confidence if researchers could predict in advance which tasks depend on J-space and which tasks bypass it. That would turn the workspace claim from a compelling interpretation into a more precise computational theory.
 
 ## What I Do Not Believe Yet
 

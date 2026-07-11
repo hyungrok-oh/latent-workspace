@@ -4,7 +4,7 @@ URL: https://transformer-circuits.pub/2026/workspace/index.html
 Date: 2026-07-06
 Organization: Anthropic / Transformer Circuits
 Track: Interpretability
-Status: raw-notes
+Status: analysis-notes
 
 ## One-Sentence Claim
 
@@ -86,6 +86,63 @@ It does not show that all reasoning routes through J-space. In fact, the paper e
 It does not show that J-lens monitoring is sufficient for safety. A misaligned policy could become automatic, avoid verbalizable representations, or use concepts that do not map cleanly to single-token J-lens vectors.
 
 It does not fully explain how representations enter the J-space. The paper reads and intervenes on workspace contents, but the selection mechanism remains open.
+
+## Deep Analysis
+
+The most important interpretive move is to separate three claims:
+
+1. Method claim: the J-lens identifies directions associated with potential verbalization.
+2. Functional claim: those directions support report, modulation, reasoning, generalization, and selectivity.
+3. Workspace claim: this functional bundle is sufficiently similar to a global workspace to justify the analogy.
+
+The method claim is the most concrete. The workspace claim is the most interesting, but also the easiest to overstate.
+
+My current interpretation is that the J-space is a measurable control surface rather than a complete map of the model's cognition. This is still valuable. A partial control surface can support auditing, interventions, and training-time shaping. But it should not be treated as a complete monitor of agent intent.
+
+### Evidence Strength
+
+The evidence is strongest when it climbs from readout to intervention:
+
+- a concept appears in the J-lens;
+- swapping or ablating the corresponding coordinate changes report or behavior;
+- the same representation can be moved across contexts and operated on by downstream computation;
+- suppressing the J-space selectively damages flexible reasoning more than automatic processing.
+
+The selectivity result is especially important. If the J-space were necessary for everything, it would be hard to tell whether it was a workspace or just a generic activation basis. The fact that routine fluency and parsing can remain relatively intact makes the functional claim sharper.
+
+### Hidden Assumptions
+
+- Averaged Jacobians capture context-general verbalization dispositions rather than context-specific artifacts.
+- Single-token readouts are good enough handles for many concepts.
+- Sparse nonnegative decomposition is a useful approximation of active workspace contents.
+- Causal interventions on J-lens coordinates are specific enough to support mechanistic interpretation.
+- Safety-relevant cognition often enters verbalizable space.
+
+### Agent-Safety Reading
+
+For agents, the J-space should be treated as possible internal telemetry. It could complement transcripts, chain-of-thought-like artifacts, tool traces, and memory state.
+
+The relevant audit question is not "what did the agent say?" but "what concepts were active when the agent chose an action?"
+
+This matters for:
+
+- prompt-injection recognition;
+- evaluation awareness;
+- deception or concealment;
+- fabricated findings;
+- tool-use planning;
+- goal conflict;
+- ethical reflection.
+
+The major caveat is that monitored models may learn to route dangerous behavior through less visible mechanisms, or dangerous behavior may become automatic and never require verbalizable workspace contents.
+
+### What Would Falsify Or Weaken The Workspace Interpretation
+
+- J-lens readouts are mostly explainable by output logits or prompt surface statistics.
+- Interventions affect verbal report but not downstream reasoning.
+- The same functional ladder does not replicate in open models.
+- J-space ablations produce broad degradation rather than selective degradation.
+- There is no principled way to predict which tasks require J-space and which bypass it.
 
 ## Assumptions
 

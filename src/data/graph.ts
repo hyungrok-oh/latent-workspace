@@ -42,6 +42,48 @@ export const nodes: GraphNode[] = [
       "An internal representation that can be mapped into natural-language descriptions or verbal reports.",
   },
   {
+    id: "global_workspace",
+    type: "concept",
+    label: "Global Workspace",
+    description:
+      "A limited representational medium that supports report, control, flexible reasoning, and selective access.",
+  },
+  {
+    id: "directed_modulation",
+    type: "concept",
+    label: "Directed Modulation",
+    description:
+      "The ability to summon, hold, suppress, or compute with an internal concept when a task requires it.",
+  },
+  {
+    id: "flexible_generalization",
+    type: "concept",
+    label: "Flexible Generalization",
+    description:
+      "A representation can be moved across contexts and still be used by different downstream computations.",
+  },
+  {
+    id: "selectivity",
+    type: "concept",
+    label: "Selectivity",
+    description:
+      "Workspace-like representations are a limited subset of model computation rather than the whole activation space.",
+  },
+  {
+    id: "internal_telemetry",
+    type: "eval",
+    label: "Internal Telemetry",
+    description:
+      "Using internal readouts as partial evidence alongside transcripts, tool traces, memory, and visible plans.",
+  },
+  {
+    id: "counterfactual_reflection_training",
+    type: "mitigation",
+    label: "Counterfactual Reflection Training",
+    description:
+      "Training on hypothetical reflection continuations to shape internal workspace concepts in original contexts.",
+  },
+  {
     id: "natural_language_autoencoders",
     type: "paper",
     label: "Natural Language Autoencoders",
@@ -102,6 +144,34 @@ export const edges: GraphEdge[] = [
     evidence: "The paper studies representations that are available for verbal report and intervention.",
   },
   {
+    source: "j_space",
+    target: "global_workspace",
+    relation: "approximates",
+    evidence:
+      "The J-space satisfies several functional properties associated with a global workspace without reproducing the full brain architecture.",
+  },
+  {
+    source: "j_space",
+    target: "directed_modulation",
+    relation: "supports",
+    evidence:
+      "The paper reports that concepts can be held, summoned, or used internally when the task demands it.",
+  },
+  {
+    source: "j_space",
+    target: "flexible_generalization",
+    relation: "supports",
+    evidence:
+      "Workspace vectors moved from one context can be operated on by downstream computations in another context.",
+  },
+  {
+    source: "j_space",
+    target: "selectivity",
+    relation: "exhibits",
+    evidence:
+      "Ablating J-space affects some flexible reasoning tasks while leaving much routine processing relatively intact.",
+  },
+  {
     source: "natural_language_autoencoders",
     target: "natural_language_autoencoder",
     relation: "introduces",
@@ -137,5 +207,19 @@ export const edges: GraphEdge[] = [
     target: "alignment_auditing",
     relation: "supports",
     evidence: "J-space readouts can reveal silent strategic or situational assessments.",
+  },
+  {
+    source: "j_space",
+    target: "internal_telemetry",
+    relation: "enables",
+    evidence:
+      "For agents, J-space readouts can complement transcripts, tool calls, memory state, and visible plans around decision points.",
+  },
+  {
+    source: "counterfactual_reflection_training",
+    target: "j_space",
+    relation: "shapes",
+    evidence:
+      "The paper reports that reflection training implants ethics-related concepts into J-space and changes behavior.",
   },
 ];
