@@ -169,17 +169,54 @@ Important limitations:
 
 ## Reproducibility Notes
 
-The core technique is mathematically explicit, but full reproduction likely requires model internals and access to Claude model weights/activations that are not publicly available.
+The core technique is mathematically explicit, and Anthropic has released a public reference implementation:
+
+- https://github.com/anthropics/jacobian-lens
+
+This changes the reproduction assessment.
+
+The J-lens method can be fitted and applied to open-weights decoder transformers. However, the full Claude-scale paper results still depend on model settings, fitted lenses, and internal evidence that are not automatically reproduced by running the public package.
 
 Possible partial reproduction path:
 
 1. Apply logit-lens or tuned-lens methods to open-source transformer models.
-2. Approximate J-lens-style averaged Jacobians on small open models.
+2. Use the official J-lens implementation on small open models.
 3. Test whether concept swaps redirect simple verbal reports.
 4. Compare automatic tasks vs flexible reasoning tasks under ablation of decoded concept directions.
 5. Use Neuronpedia or released interactive examples if available for public inspection.
 
-For blog purposes, avoid presenting this as easily reproducible unless an open-source implementation and compatible model are available.
+For blog purposes, distinguish three levels:
+
+- method reproduction: feasible with the official code and open models;
+- small-model empirical exploration: feasible on a capable local or remote machine;
+- paper-level Claude reproduction: not currently established locally.
+
+## Official Code Audit
+
+Repository:
+
+- https://github.com/anthropics/jacobian-lens
+
+Confirmed details:
+
+- The repo is a reference implementation and companion code for the Workspace paper.
+- The package name is `jlens`.
+- It requires Python `>=3.10` and depends on `torch`, `huggingface_hub`, `transformers>=5.5`, and `numpy`.
+- It supports fitting a lens, applying a lens, loading saved lenses, merging lenses fitted on disjoint prompt slices, and rendering interactive slice visualizations.
+- It includes prompt sets for many global-workspace experiments, including verbal report, directed modulation, flexible generalization, selectivity, ignition, capacity, and dual-task interference.
+- It does not bundle model weights or the generic corpus used to fit the paper lenses.
+
+Implementation details:
+
+- `jlens.fitting.jacobian_for_prompt` computes per-layer Jacobian estimates.
+- The estimator uses one forward pass and `ceil(d_model / dim_batch)` backward passes per prompt.
+- It excludes the first 16 positions by default and excludes the final position.
+- `jlens.lens.JacobianLens.apply` supports `use_jacobian=False`, giving a vanilla logit-lens baseline path.
+- `jlens.hf.from_hf` adapts common HuggingFace decoder layouts.
+
+Accuracy update:
+
+Earlier notes were directionally correct but too pessimistic about public reproducibility. The correct statement is that the J-lens method is public and usable on open models, while the paper's central Claude-scale claims still require careful separate reproduction.
 
 ## Connections
 

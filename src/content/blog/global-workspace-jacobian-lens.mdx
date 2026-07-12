@@ -154,7 +154,7 @@ The main limitation is the single-token bottleneck. A J-lens vector is tied to a
 
 The second limitation is that J-space can look like a bag of concepts. It may reveal that concepts are active without showing how they are bound together.
 
-The third limitation is reproducibility. The full result appears to depend on access to model internals for large Claude models, which means most readers cannot directly reproduce the central experiments today.
+The third limitation is reproducibility, but this needs a careful update. Anthropic has released a public reference implementation of the Jacobian lens at `anthropics/jacobian-lens`, so the method is not merely speculative or private. It can be fitted and applied to open-weights decoder transformers. What remains hard to reproduce is the full Claude-scale body of evidence and the exact internal setting behind the paper's main results.
 
 The fourth limitation is safety coverage. If a model's harmful behavior is automatic, nonverbal, or deliberately routed away from reportable representations, J-space auditing could miss it.
 
@@ -172,20 +172,27 @@ For Latent Workspace, this paper also sets the editorial standard: the goal is n
 
 ## Reproduction Status
 
-Current status: conceptual study and local toy planning.
+Current status: conceptual study, local toy experiment, and official-code audit.
 
-I do not currently treat this as directly reproducible on my local machine. The full method likely requires access to model internals and activation data from large Claude models.
+I no longer think the right next step is only a homemade J-lens approximation. The official `anthropics/jacobian-lens` repository provides a reference implementation for open-weights decoder transformers.
 
-The practical next step is a local logit-lens baseline:
+The more accurate position is:
 
-1. use a tiny open model;
-2. capture hidden states at each layer;
-3. apply output vocabulary readouts to intermediate states;
-4. compare what this naive method can and cannot reveal;
-5. use the result as a baseline before attempting any J-lens-like approximation.
+- the J-lens method is publicly implementable;
+- the central Claude-scale results are not directly reproduced locally;
+- the current laptop is suitable for code audit, not meaningful fitting;
+- the 48GB Mac may be suitable for a small open-model J-lens run.
 
-This would not reproduce the paper. It would build the minimum experimental intuition needed to read the paper critically.
+The practical next steps are:
+
+1. keep the tiny-model logit-lens baseline as a sanity check;
+2. audit the official J-lens implementation;
+3. try loading a pre-fitted Qwen lens or fitting a small lens on the 48GB Mac;
+4. compare vanilla logit-lens readouts against J-lens readouts on controlled prompts.
+
+This still would not reproduce the full paper. But it would move the study path from conceptual approximation to direct engagement with the released method.
 
 ## References
 
 - Anthropic / Transformer Circuits, "Verbalizable Representations Form a Global Workspace in Language Models", 2026-07-06. https://transformer-circuits.pub/2026/workspace/index.html
+- Anthropic, `anthropics/jacobian-lens`, reference implementation. https://github.com/anthropics/jacobian-lens

@@ -45,4 +45,13 @@ export const experiments: Experiment[] = [
     goal: "Extract hidden states from a small causal language model and read each layer through the model vocabulary.",
     nextStep: "Install optional torch/transformers dependencies on a model-capable Mac and run the default tiny GPT-2 pipeline.",
   },
+  {
+    id: "005-official-jacobian-lens-code-audit",
+    title: "Official Jacobian Lens Code Audit",
+    status: "code audit",
+    target: "Anthropic jacobian-lens reference implementation",
+    compute: "Current macOS laptop for audit; 48GB Mac recommended for fitting",
+    goal: "Audit the official implementation and update the reproduction plan from approximation to public-code execution.",
+    nextStep: "Decide whether the 48GB Mac should load a pre-fitted Qwen lens or fit a small lens from around 100 prompts.",
+  },
 ];
