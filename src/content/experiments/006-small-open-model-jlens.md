@@ -30,10 +30,29 @@ Good success:
 - inspect a mid-layer where J-lens is more interpretable than vanilla logit lens;
 - paste the markdown output back into this note.
 
+## UV Environment
+
+This experiment is managed as a small uv project under `experiments/006-small-open-model-jlens/`.
+
+Preferred setup:
+
+```bash
+cd experiments/006-small-open-model-jlens
+uv sync
+```
+
+The `.python-version` file requests Python 3.11. If uv cannot find it:
+
+```bash
+uv python install 3.11
+uv sync
+```
+
 ## Current Laptop Check
 
 ```bash
-python3 experiments/006-small-open-model-jlens/run_prefitted.py --check-env
+cd experiments/006-small-open-model-jlens
+uv run python run_prefitted.py --check-env
 ```
 
 The current laptop is expected to fail the runtime dependency check. That is acceptable; it is for setup and documentation.
@@ -41,9 +60,9 @@ The current laptop is expected to fail the runtime dependency check. That is acc
 ## 48GB Mac Setup
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install -r experiments/006-small-open-model-jlens/requirements.txt
+cd experiments/006-small-open-model-jlens
+uv sync
+uv run python run_prefitted.py --check-env
 ```
 
 ## Pre-Fitted Lens Path
@@ -51,7 +70,8 @@ python -m pip install -r experiments/006-small-open-model-jlens/requirements.txt
 Default command:
 
 ```bash
-python experiments/006-small-open-model-jlens/run_prefitted.py --markdown
+cd experiments/006-small-open-model-jlens
+uv run python run_prefitted.py --markdown
 ```
 
 Defaults follow the official walkthrough:

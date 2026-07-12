@@ -45,15 +45,44 @@ Strong success:
 - compare a reasoning prompt and a safety/auditing prompt;
 - decide whether to proceed to local lens fitting.
 
-## Current Laptop Check
+## UV Environment
 
-Run:
+This experiment is managed as a small uv project inside:
 
 ```bash
-python3 experiments/006-small-open-model-jlens/run_prefitted.py --check-env
+experiments/006-small-open-model-jlens/
 ```
 
-Expected current result:
+Files:
+
+- `.python-version`: requests Python 3.11
+- `pyproject.toml`: declares `jlens`, `torch`, `transformers`, and runtime dependencies
+- `README.md`: short local execution guide
+- `requirements.txt`: pip fallback
+
+Preferred setup:
+
+```bash
+cd experiments/006-small-open-model-jlens
+uv sync
+```
+
+If Python 3.11 is not installed:
+
+```bash
+uv python install 3.11
+uv sync
+```
+
+## Current Laptop Check
+
+From the experiment directory:
+
+```bash
+uv run python run_prefitted.py --check-env
+```
+
+Without syncing the uv environment, the current laptop is expected to report:
 
 ```text
 python: 3.9.x
@@ -68,10 +97,21 @@ This is acceptable. The current laptop is for setup and documentation.
 
 ## 48GB Mac Setup
 
+Preferred uv path:
+
+```bash
+cd experiments/006-small-open-model-jlens
+uv sync
+uv run python run_prefitted.py --check-env
+```
+
+Pip fallback:
+
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-python -m pip install -r experiments/006-small-open-model-jlens/requirements.txt
+python -m pip install -r requirements.txt
+python run_prefitted.py --check-env
 ```
 
 If `transformers>=5.5` is not available in the environment, install the newest compatible version and record the deviation before running results.
@@ -81,7 +121,8 @@ If `transformers>=5.5` is not available in the environment, install the newest c
 Default command:
 
 ```bash
-python experiments/006-small-open-model-jlens/run_prefitted.py --markdown
+cd experiments/006-small-open-model-jlens
+uv run python run_prefitted.py --markdown
 ```
 
 The default values follow the official walkthrough:
@@ -94,7 +135,7 @@ The default values follow the official walkthrough:
 For a smaller or different setup:
 
 ```bash
-python experiments/006-small-open-model-jlens/run_prefitted.py \
+uv run python run_prefitted.py \
   --model Qwen/Qwen3.5-4B \
   --device mps \
   --dtype float16 \
