@@ -1,7 +1,7 @@
 export type Experiment = {
   id: string;
   title: string;
-  status: "planned" | "code audit" | "local toy" | "activation scaffold" | "remote candidate";
+  status: "planned" | "code audit" | "local toy" | "activation scaffold" | "remote candidate" | "runbook";
   target: string;
   compute: string;
   goal: string;
@@ -53,5 +53,14 @@ export const experiments: Experiment[] = [
     compute: "Current macOS laptop for audit; 48GB Mac recommended for fitting",
     goal: "Audit the official implementation and update the reproduction plan from approximation to public-code execution.",
     nextStep: "Decide whether the 48GB Mac should load a pre-fitted Qwen lens or fit a small lens from around 100 prompts.",
+  },
+  {
+    id: "006-small-open-model-jlens",
+    title: "Small Open-Model J-Lens Runbook",
+    status: "runbook",
+    target: "Official Jacobian Lens on an open-weights decoder model",
+    compute: "Current macOS laptop for env check; 48GB Mac for real execution",
+    goal: "Prepare a runnable protocol for loading a pre-fitted J-lens and comparing it against vanilla logit lens.",
+    nextStep: "Run the pre-fitted Qwen path on the 48GB Mac and paste the markdown output into the experiment note.",
   },
 ];

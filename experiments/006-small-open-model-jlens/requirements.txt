@@ -1,0 +1,6 @@
+git+https://github.com/anthropics/jacobian-lens.git
+torch
+transformers>=5.5
+huggingface_hub
+numpy
+accelerate
