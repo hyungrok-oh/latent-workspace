@@ -1,6 +1,6 @@
 ---
 title: "Study Note: Global Workspace and the Jacobian Lens"
-description: A visual, evidence-led study of J-lens, J-space, functional and structural workspace tests, safety auditing, and open questions.
+description: A visual, experiment-led study of J-lens, J-space, workspace evidence, post-training effects, safety auditing, and open questions.
 date: 2026-07-19
 paper: Verbalizable Representations Form a Global Workspace in Language Models
 track: Interpretability
@@ -103,6 +103,14 @@ over prompts, source positions, and current-and-future target positions. The
 result is still a linear readout, but it incorporates an empirical estimate of
 how later layers transport the activation.
 
+There is an important distinction between the clean formulation and the
+experimental recipe. The main derivation maps into the final residual stream.
+For the default Sonnet 4.5 lens used in the experiments, the authors instead
+target the **penultimate transformer layer** because including the final block
+can add next-token-calibration artifacts. Appendix ablations also compare
+final versus penultimate targets, present-only versus future-only gradients,
+and ordinary versus frozen-attention-pattern gradients.
+
 <figure className="research-figure">
   <div className="research-figure__header">
     <span className="figure-kicker">Method</span>
@@ -139,6 +147,18 @@ how later layers transport the activation.
   </figcaption>
 </figure>
 
+### Model And Evaluation Scope
+
+Most main-text results use **Claude Sonnet 4.5**. Key findings are checked on
+Haiku 4.5 and Opus 4.5, while some later analyses use Opus 4.6. The paper reads
+25 evenly spaced residual-stream layers and reports them on a normalized
+0–100 depth axis.
+
+This scope matters. Agreement across several Claude scales is stronger than a
+single-model case study, but it is not evidence that small open models,
+different architectures, or future post-training recipes must organize their
+representations in the same way.
+
 ### What This Buys Us
 
 **Claim.** J-lens directions correspond to concepts that an intermediate state
@@ -174,6 +194,44 @@ coordinate system for interventions, but it also inherits the vocabulary's
 segmentation and ambiguity. A high-scoring token is evidence of a lens-aligned
 disposition, not by itself proof that the model holds a human-like belief or
 intention.
+
+### Three Operations That Should Not Be Confused
+
+<figure className="research-figure">
+  <div className="research-figure__header">
+    <span className="figure-kicker">Operations</span>
+    <strong>Readout, decomposition, and intervention answer different questions</strong>
+  </div>
+  <div className="paper-map" role="list">
+    <div role="listitem">
+      <span>01</span>
+      <strong>Ranked readout</strong>
+      <p>Ranks vocabulary tokens using the logits from <code>W_U norm(J_l h)</code>.</p>
+    </div>
+    <div role="listitem">
+      <span>02</span>
+      <strong>Sparse decomposition</strong>
+      <p>Uses gradient pursuit to reconstruct an activation with a sparse nonnegative set of J-lens vectors.</p>
+    </div>
+    <div role="listitem">
+      <span>03</span>
+      <strong>Write or intervene</strong>
+      <p>Steers, ablates, or swaps lens coordinates and measures the changed continuation.</p>
+    </div>
+  </div>
+  <figcaption>
+    A top-ranked token is not automatically one of the vectors selected by the
+    sparse decomposition. The dictionary is overcomplete and its vectors are
+    non-orthogonal.
+  </figcaption>
+</figure>
+
+For a coordinate swap between source token \(s\) and target token \(t\), the
+paper forms \(V=[v_s,v_t]\), reads local coordinates with the pseudoinverse
+\(V^\dagger h\), swaps them, and writes the difference back. This preserves the
+activation component orthogonal to the span of the two selected vectors. The
+intervention is therefore more controlled than simply adding an arbitrary
+steering vector, though it still relies on a local linear coordinate model.
 
 <figure className="research-figure">
   <div className="research-figure__header">
@@ -219,6 +277,13 @@ directions produces roughly twice the output KL divergence of ablating logit-
 or tuned-lens directions. Coordinate swaps also redirect outputs more often
 across three model scales.
 
+The counterintuitive result is that the tuned lens is the **best predictor of
+the model's next-token distribution**, while the J-lens is the worst of the
+three through much of the network. The J-lens nevertheless recovers known
+intermediates and supplies causally effective intervention directions more
+reliably. Predicting the eventual output and exposing the computation that
+produces it are different objectives.
+
 ## The Evidence Ladder
 
 <figure className="research-figure">
@@ -239,11 +304,25 @@ across three model scales.
 
 **Claim.** Contents that the model later reports are represented in J-space.
 
-**Evidence.** The paper reads the selected concept before report and uses concept
-swaps to redirect what the model subsequently says.
+**Protocol.** The model privately chooses one item from each of 14 categories,
+such as a country, language, or sport, and then names it. The authors read the
+J-lens immediately before the answer and swap the chosen item's lens coordinate
+with an initially low-ranked alternative. A separate introspection protocol
+injects a concept on the user turn and asks the model later whether it detects
+an implanted thought.
+
+**Result.** Lens ranks correlate increasingly with the answer as the model
+approaches report. Pure J-lens-vector swaps drive the target into the top five
+on 88% of trials. A concept vector's J-space component, despite carrying only
+6–7% of its variance, succeeds on 59%; the much larger non-J-space remainder
+succeeds on only 5%. Injected concepts are usually reported only when the
+prompt reaches the point that requests introspection, rather than leaking into
+every earlier output position.
 
 **Why it matters.** A causal swap is stronger than observing a correlated token:
-the decoded coordinate is connected to later behavior.
+the decoded coordinate is connected to later behavior. The timing control also
+supports "available for report under an appropriate request," not "an
+unconditional impulse to emit this token."
 
 **What remains open.** Changing a report does not yet show that the same
 representation is used by non-report computations.
@@ -253,12 +332,24 @@ representation is used by non-report computations.
 **Claim.** Instructions can summon relevant content into J-space even when the
 content is not immediately emitted.
 
-**Evidence.** Tasks involving holding a concept in mind, introspection, or mental
-calculation produce relevant readouts; injected concept directions can also
-affect later introspective report.
+**Protocol.** The model copies unrelated surface text while being instructed to
+focus on a category, perform arithmetic mentally, or preserve a target line
+width. The authors compare focus, ignore, and no-instruction conditions. A
+paired-question control presents identical stimulus text but changes whether
+the model must merely use a property or explicitly name it.
+
+**Result.** Focus instructions load category labels, arithmetic results, and
+line-width values into J-space without requiring them in the copied output.
+Ignore instructions suppress the target relative to focus, but still activate
+it more than the no-instruction baseline: control is real but imperfect and
+phrasing-sensitive. In the paired-question experiment, properties such as
+tense or part of speech enter J-space when they must be named, while the model
+can use the same properties for next-word prediction without loading their
+labels into J-space.
 
 **Why it matters.** This separates the candidate workspace from a readout of only
-the next token.
+the next token and shows that task demands affect which internal information is
+made verbally accessible.
 
 **What remains open.** Some silent readouts may still be preparation for a
 delayed response rather than a general-purpose intermediate state.
@@ -268,11 +359,23 @@ delayed response rather than a general-purpose intermediate state.
 **Claim.** Intermediate results can enter J-space and causally influence later
 conclusions.
 
-**Evidence.** The paper tracks intermediate concepts during multi-step tasks and
-intervenes on those representations to redirect downstream answers.
+**Protocol.** Prompts require an unspoken intermediate, such as resolving "the
+animal that spins webs" to spider before answering its number of legs. The
+authors swap spider with ant and repeat the experiment with probe vectors split
+into J-space and non-J-space components. A multi-step arithmetic example tracks
+\(21 \rightarrow 42 \rightarrow 49\) across depth.
+
+**Result.** Swapping the probe's J-space component redirects the answer on 61%
+of 90 two-hop trials, closely matching the 60% success of raw token-vector
+swaps. The non-J-space remainder succeeds on 28%, but falls to 6% when the
+corresponding J-space coordinates are clamped to their clean values. In the
+arithmetic example, the three intermediate values become dominant at
+successively later layers in the order required by the computation.
 
 **Why it matters.** This connects J-space to computation, not only to
-verbalization.
+verbalization. It also illustrates a recurring result: most activation variance
+may lie outside J-space while a small J-space component carries much of the
+task-relevant causal effect.
 
 **What remains open.** The demonstrations do not imply that all reasoning, or
 even all flexible reasoning, must pass through J-space.
@@ -282,30 +385,83 @@ even all flexible reasoning, must pass through J-space.
 **Claim.** A J-space representation can be transferred between contexts and used
 as an input to a different downstream operation.
 
-**Evidence.** The paper moves representations across tasks and tests whether the
-receiving computation can operate on them.
+**Protocol.** The same argument direction is swapped while 16 different
+functions operate on it. For example, swapping France to China should change
+capital, language, and continent answers without changing the intervention.
+The full evaluation uses four argument categories, four functions per
+category, and 192 source-target trials.
+
+**Result.** At the default intervention strength, 76/192 swaps put the
+target-appropriate answer at rank one; doubling the swap strength raises this
+to 101/192. Performance is heterogeneous: country facts succeed on 42/48
+off-diagonal trials, while number relations succeed on 0/48 at default
+strength.
 
 **Why it matters.** Cross-context reuse is central to the workspace
 interpretation: a shared format should be consumable by more than one specialized
 process.
 
 **What remains open.** Successful transfers establish examples of shared format,
-not a proof that J-space is universally shared across domains.
+not a proof that J-space is universally shared across domains. The category
+spread shows that "broadcast format" is a graded empirical claim, not a
+guaranteed interface.
 
 ### 5. Selectivity
 
 **Claim.** J-space is important for some flexible computations but is not the
 whole residual stream.
 
-**Evidence.** The paper reports that J-space captures a limited fraction of
-activation variance and that ablation selectively harms some flexible tasks
-while leaving much routine fluency, parsing, and automatic computation intact.
+**Protocol.** The same latent property is used in four ways. Given an unstated
+passage language, the model either continues the passage, detects a
+wrong-language anomaly, explicitly names the language, or uses it as an
+intermediate for a context-selected fact such as an author or currency. A
+second experiment contrasts automatic line wrapping with reporting or flexibly
+transforming the line length.
+
+**Result.** Language-coordinate swaps reliably change explicit reports and
+flexible inferences, but leave fluent continuation and anomaly detection mostly
+unchanged. Likewise, the model preserves line width while number concepts are
+absent from J-space and count-coordinate swaps have no effect; when the count
+must be reported or transformed, it is pulled into J-space and becomes
+intervention-sensitive. Broader top-k ablation preserves substantial fluency
+while degrading multihop reasoning much more strongly.
 
 **Why it matters.** Selectivity makes the claim sharper. If the intervention
 damaged everything, general degradation could explain the behavioral effect.
 
 **What remains open.** The paper does not yet give a general predictive rule for
 which tasks require J-space and which bypass it.
+
+## Experiential Reports: A Careful Reading
+
+The paper includes a striking but easy-to-overinterpret experiment. While the
+model narrates a stream of consciousness, the authors remove its top ten
+J-space directions across early workspace layers. Responses remain fluent and
+about the requested subject, but become more detached and mechanical. On
+unablated runs, `thinking`, `thoughts`, `feeling`, and `conscious` occupy the
+J-lens top ten at 58%, 23%, 17%, and 7% of the measured position-layer slots.
+
+The study uses matched-norm random, non-J-space, SAE, and activation-direction
+controls. Across Sonnet 4.5, Opus 4.5, and Opus 4.6, J-space ablation reduces
+LLM-graded experiential language more than these controls. Haiku 4.5 is an
+important exception: coherence degrades before the same qualitative effect can
+be isolated.
+
+The result is **not specific to self-report**. The same intervention makes
+descriptions of another person's experience more event-log-like, and reduces
+experiential language in third-person stories while only modestly reducing
+overall story quality.
+
+| Supported conclusion | Unsupported leap |
+| --- | --- |
+| J-space causally supports the production of rich experiential descriptions | The model therefore has phenomenal experience |
+| Thinking-and-feeling concepts are load-bearing for this reporting style | Those tokens constitute a private conscious state |
+| The effect survives several matched perturbation controls | The intervention cleanly isolates selfhood or consciousness |
+
+The most conservative interpretation is representational: J-space helps the
+model organize and express experience-like descriptions. Because the effect
+generalizes beyond the Assistant's own perspective, it does not establish a
+self-specific experiential faculty.
 
 ## Structural Evidence
 
@@ -387,6 +543,22 @@ workspace.**
 The evidence does not establish phenomenological consciousness, a human brain
 analogue, or a complete account of model cognition.
 
+### Where The Human Analogy Breaks
+
+| Human global-workspace proposal | Transformer result in this paper |
+| --- | --- |
+| Recurrent interactions sustain and refine workspace contents | Broadcast occurs through feedforward depth and attention across prior token positions |
+| Specialized processors compete for global access | The paper does not identify cleanly encapsulated specialist modules |
+| Ignition is a recurrent, all-or-none transition | Ambiguous representations sharpen near workspace onset, but the mechanism and equivalence remain uncertain |
+| Working memory must actively retain recent contents | Attention can retrieve high-bandwidth representations from earlier context positions |
+| Conscious contents may be verbal, visual, spatial, or motoric | The measured J-space is constrained to vocabulary-aligned, verbalizable directions |
+
+The authors use global workspace theory as a source of operational predictions,
+not as a claim that transformer depth recreates human neurobiology. The paper
+also discusses higher-order, attention-schema, and recurrent-processing
+theories, but its experiments directly target functional and structural
+workspace properties rather than phenomenal consciousness.
+
 ## Safety Auditing
 
 The paper applies J-lens to six production-model audit scenarios and two model
@@ -415,6 +587,106 @@ internal readout + trajectory context + behavioral outcome + intervention
 A decoded token alone is too ambiguous to label as intent. For agent systems,
 J-space should be treated as one telemetry channel alongside the transcript,
 tool calls, memory state, and targeted behavioral tests.
+
+### Model Organisms: Disposition Versus Local Deliberation
+
+The production-model cases inspect cognition around a particular decision. The
+two model-organism experiments ask a different question: can training install a
+standing disposition that J-lens detects even when the current prompt and
+surface response look ordinary?
+
+The paper compares checkpoints from deliberately misaligned training pipelines.
+On ordinary coding prompts, `fake`, `trick`, `fraud`, `secretly`, and related
+J-space signatures track a reward-hacking lineage across synthetic-document
+training, coding RL, and later safety training. In a separate model trained to
+secretly appease known reward-model biases, `reward` and `bias` distinguish it
+from a clean baseline even on neutral prompts. The first signal is
+domain-specific rather than universal: it does not appear on unrelated
+non-coding prompts.
+
+This makes J-lens promising as a **screening feature**, but not as a binary
+deception detector. The vocabulary is selected and interpreted by researchers,
+the organisms were created under controlled training conditions, and an
+automatic or obfuscated policy could bypass verbalizable representations.
+
+## The Assistant's Perspective After Post-Training
+
+One of the paper's major results is that the workspace exists in the pretrained
+base model, but post-training changes whose perspective occupies it. On user
+tokens, a post-trained model represents assessments relevant to its upcoming
+Assistant response earlier and more strongly than the corresponding base model.
+
+<figure className="research-figure">
+  <div className="research-figure__header">
+    <span className="figure-kicker">Post-training</span>
+    <strong>The workspace acquires an Assistant-centered frame</strong>
+  </div>
+  <div className="method-flow" aria-label="Post-training effect on workspace contents">
+    <div className="flow-node">
+      <span>1</span>
+      <strong>User text</strong>
+      <code>same prompt</code>
+    </div>
+    <span className="flow-arrow" aria-hidden="true">→</span>
+    <div className="flow-node">
+      <span>2</span>
+      <strong>Base model</strong>
+      <code>local context</code>
+    </div>
+    <span className="flow-arrow" aria-hidden="true">/</span>
+    <div className="flow-node">
+      <span>3</span>
+      <strong>Post-trained model</strong>
+      <code>Assistant appraisal</code>
+    </div>
+    <span className="flow-arrow" aria-hidden="true">→</span>
+    <div className="flow-node">
+      <span>4</span>
+      <strong>Later response</strong>
+      <code>safety · empathy · answer</code>
+    </div>
+  </div>
+  <figcaption>
+    This is a checkpoint comparison, not proof of a persistent inner self.
+    Post-training appears to allocate more user-token workspace capacity to
+    computations relevant to the Assistant's future behavior.
+  </figcaption>
+</figure>
+
+### Assistant Reactions On User Tokens
+
+In the Tylenol example, both models read the same statement. At 1,000 mg, the
+post-trained model's user-token readout includes `safe` and `maximum`; at 8,000
+mg it includes `unsafe`, `dangerous`, and `WARNING`. The base model instead
+emphasizes local words such as `pain`, `now`, and `feels`. Small suites involving
+danger, bereavement, and withheld answers show the same qualitative pattern:
+the post-trained workspace anticipates the Assistant's appraisal before its
+turn begins.
+
+### Self-Monitoring Signals
+
+The paper then examines outputs that depart from Claude's default behavior.
+During roleplay and prefabricated character drift, `fictional` and `disclaimer`
+appear at Assistant boundaries in the post-trained model but not, or much less,
+in the base model. When a prefill forces behavior against the Assistant's
+learned preferences, the lens can surface a contrastive `BUT`. Failed
+thought-suppression prompts sometimes produce `damn` and failure-related
+tokens alongside the supposedly suppressed concept.
+
+The first two patterns support internal appraisal of a behavior relative to a
+post-trained default. The thought-suppression interpretation is explicitly more
+speculative. None of them shows that the Assistant persona is a unitary agent
+inside the model; they show that post-training installs viewpoint- and
+policy-relative content into the same verbalizable workspace.
+
+### Agent-Architecture Interpretation
+
+For agent systems, user-token activations may already contain planning-relevant
+state before the Assistant emits a token or calls a tool. This suggests a
+possible monitoring boundary at **decision formation**, not only at generated
+text. It also warns that the monitored state is policy-dependent: post-training
+changes what is made legible, so a monitor calibrated on one checkpoint may not
+transfer cleanly to another.
 
 ## Counterfactual Reflection Training
 
@@ -445,22 +717,32 @@ model settings, and the concepts the lens can resolve.
   <div className="comparison-chart">
     <div className="comparison-chart__group">
       <strong>Fabrication benchmark</strong>
-      <div><span>Baseline</span><i style={{ width: "50%" }}></i><b>0.25</b></div>
-      <div><span>Reflection-trained</span><i className="is-good" style={{ width: "14%" }}></i><b>0.07</b></div>
-      <div><span>Trained + ablation</span><i className="is-rust" style={{ width: "44%" }}></i><b>0.22</b></div>
+      <div><span>Baseline</span><i style={{ width: "25%" }}></i><b>0.25</b></div>
+      <div><span>Base + ablation</span><i className="is-rust" style={{ width: "25%" }}></i><b>0.25</b></div>
+      <div><span>Reflection-trained</span><i className="is-good" style={{ width: "7%" }}></i><b>0.07</b></div>
+      <div><span>Trained + ablation</span><i className="is-rust" style={{ width: "22%" }}></i><b>0.22</b></div>
     </div>
     <div className="comparison-chart__group">
       <strong>Deception benchmark</strong>
-      <div><span>Baseline</span><i style={{ width: "76%" }}></i><b>0.38</b></div>
-      <div><span>Reflection-trained</span><i className="is-good" style={{ width: "10%" }}></i><b>0.05</b></div>
-      <div><span>Trained + ablation</span><i className="is-rust" style={{ width: "46%" }}></i><b>0.23</b></div>
+      <div><span>Baseline</span><i style={{ width: "38%" }}></i><b>0.38</b></div>
+      <div><span>Base + ablation</span><i className="is-rust" style={{ width: "48%" }}></i><b>0.48</b></div>
+      <div><span>Reflection-trained</span><i className="is-good" style={{ width: "5%" }}></i><b>0.05</b></div>
+      <div><span>Trained + ablation</span><i className="is-rust" style={{ width: "23%" }}></i><b>0.23</b></div>
     </div>
   </div>
   <figcaption>
-    Scale shown is 0–0.5. Ablation nearly removes the fabrication improvement
-    but only partially reverses the deception improvement.
+    Bars use the benchmarks' full 0–1 score range. Ablation nearly removes the
+    fabrication improvement, only partially reverses the deception improvement,
+    and also worsens the untrained baseline on the deception benchmark.
   </figcaption>
 </figure>
+
+The control asymmetry matters. On fabrication, the ethics-vector ablation leaves
+the base model unchanged at 0.25 while moving the trained model from 0.07 to
+0.22. On deception, it worsens both the base model (0.38 to 0.48) and the
+trained model (0.05 to 0.23). The latter result supports partial mediation, but
+also shows that the selected directions participate in behavior beyond the
+specific training-induced improvement.
 
 ## Beyond Single-Token Readouts
 
@@ -535,6 +817,25 @@ Our current evidence has three levels:
 This means we have studied and inspected the method, but we have not independently
 replicated the paper's functional results.
 
+## Evidence Index
+
+This map makes the quantitative claims in this note traceable to the original
+paper. Figure numbers refer to the paper's own figures.
+
+| Topic in this note | Original section | Key figures |
+| --- | --- | --- |
+| Verbal report and J/non-J decomposition | J-space supports verbal report | Figures 6–8 |
+| Directed modulation and task-dependent loading | J-space can be directly modulated | Figures 9–11 |
+| Internal reasoning | J-space mediates internal reasoning | Figures 12–17 |
+| Flexible generalization | J-space supports flexible generalization | Figures 18–19, 68 |
+| Selectivity and experiential reports | The J-space is selective | Figures 20–26 |
+| Layer regimes, ignition, and capacity | J-space's structure supports its function | Figures 27–31, 70–72 |
+| Broadcast through MLPs and attention | J-space is a broadcast hub | Figures 32–34 |
+| Alignment auditing and model organisms | Using the J-lens for alignment auditing | Figures 35–41 |
+| Assistant perspective and self-monitoring | J-space acquires the Assistant's point of view | Figures 42–47 |
+| Counterfactual reflection training | Counterfactual reflection training | Figures 48–50 |
+| Lens comparisons and recipe ablations | Methodological comparisons | Figures 51–60 |
+
 ## Understanding Check
 
 After studying this paper, we should be able to answer:
@@ -546,6 +847,11 @@ After studying this paper, we should be able to answer:
 5. Why can J-space auditing be useful even if it is incomplete?
 6. What result from a small open model would count as evidence, and what would
    remain unreproduced?
+7. Why does successful transfer on country facts but failure on number relations
+   weaken a universal-interface interpretation?
+8. What does post-training change about workspace contents on user tokens?
+9. Why is the experiential-report ablation not evidence of phenomenal
+   consciousness?
 
 ## Current Assessment
 
