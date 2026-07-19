@@ -33,6 +33,8 @@ Good success:
 ## UV Environment
 
 This experiment is managed as a small uv project under `experiments/006-small-open-model-jlens/`.
+The official `jlens` dependency is pinned to audited commit `581d398`, and the
+committed `uv.lock` fixes the full dependency graph.
 
 Preferred setup:
 

@@ -23,6 +23,10 @@ The repository is a reference implementation and companion to the paper. It
 supports direct engagement with the method on open-weight decoder transformers.
 It does not, by itself, reproduce the paper's Claude-scale findings.
 
+This audit refers to official commit
+[`581d398`](https://github.com/anthropics/jacobian-lens/tree/581d398613e5602a5af361e1c34d3a92ea82ba8e),
+the initial public release dated July 1, 2026.
+
 ## Repository Map
 
 The core implementation is concentrated in a few modules:
@@ -135,12 +139,42 @@ These assets are a partial experimental scaffold. They are not a push-button
 reproduction suite for every result in the paper. A careful run still needs
 model-specific prompts, metrics, controls, and a record of lens provenance.
 
+<figure className="research-figure">
+  <div className="research-figure__header">
+    <span className="figure-kicker">Code boundary</span>
+    <strong>What the public repository lets us reproduce</strong>
+  </div>
+  <div className="scope-boundary">
+    <div>
+      <span>Included</span>
+      <strong>Method mechanics</strong>
+      <p>Fit, apply, save, load, merge, baseline readout, and slice visualization.</p>
+    </div>
+    <div>
+      <span>Assets only</span>
+      <strong>Experiment prompts</strong>
+      <p>Synthetic JSON prompts and descriptions, without full runners or metrics.</p>
+    </div>
+    <div>
+      <span>Not included</span>
+      <strong>Paper interventions</strong>
+      <p>Sparse decomposition, coordinate swaps, steering, ablation, and Claude-scale audits.</p>
+    </div>
+  </div>
+  <figcaption>
+    Running `jlens.apply()` validates the released readout path; it does not
+    reproduce the paper's causal workspace experiments.
+  </figcaption>
+</figure>
+
 ## What The Repository Does Not Provide
 
 - Claude model weights or internal activations.
 - A local reproduction of the paper's complete empirical evidence.
 - A guarantee that a lens fitted on one model or corpus transfers to another.
 - A semantic verifier that turns high-scoring tokens into beliefs or intentions.
+- Implementations of sparse J-space decomposition, coordinate swaps, steering,
+  and the paper's behavioral evaluation pipelines.
 - A maintained production-library commitment; the repository describes itself
   as reference code.
 
@@ -153,7 +187,8 @@ The local experiment is prepared under
 `experiments/006-small-open-model-jlens/` with:
 
 - a uv-managed Python 3.11 environment;
-- the official `jlens` package installed from Anthropic's repository;
+- the official `jlens` package pinned to commit `581d398`;
+- a committed `uv.lock` for the full Python dependency graph;
 - a pre-fitted Qwen lens configuration;
 - Apple Silicon `mps` and `float16` options;
 - side-by-side J-lens and logit-lens token readouts.

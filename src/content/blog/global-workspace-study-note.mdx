@@ -1,6 +1,6 @@
 ---
 title: "Study Note: Global Workspace and the Jacobian Lens"
-description: An evidence-led study of J-lens, J-space, the five functional tests, safety auditing, and the limits of the workspace claim.
+description: A visual, evidence-led study of J-lens, J-space, functional and structural workspace tests, safety auditing, and open questions.
 date: 2026-07-19
 paper: Verbalizable Representations Form a Global Workspace in Language Models
 track: Interpretability
@@ -33,11 +33,39 @@ asks what this work might mean for agent safety.
 
 ## One-Sentence Claim
 
-The paper reports that a small subset of language-model activations can be read
-as verbalizable concepts and can participate in report, control, reasoning, and
-flexible reuse, while much routine computation remains outside that subset.
-The authors call this subset **J-space** and interpret its functional profile as
-a global workspace.
+The paper reports that a privileged family of verbalizable representation
+directions participates in report, control, reasoning, and flexible reuse,
+while much routine computation proceeds outside it. Sparse combinations of
+these directions define **J-space**, which the authors interpret as a
+workspace-like component of model cognition.
+
+<figure className="research-figure">
+  <div className="research-figure__header">
+    <span className="figure-kicker">Paper map</span>
+    <strong>One argument, three kinds of evidence</strong>
+  </div>
+  <div className="paper-map" role="list">
+    <div role="listitem">
+      <span>01</span>
+      <strong>Function</strong>
+      <p>Can J-space contents be reported, controlled, reasoned with, reused, and selectively engaged?</p>
+    </div>
+    <div role="listitem">
+      <span>02</span>
+      <strong>Structure</strong>
+      <p>Do they occupy a bounded layer regime, have limited capacity, and broadcast broadly?</p>
+    </div>
+    <div role="listitem">
+      <span>03</span>
+      <strong>Application</strong>
+      <p>Can the lens audit silent cognition or shape behavior through reflection training?</p>
+    </div>
+  </div>
+  <figcaption>
+    The global-workspace claim depends on the convergence of these three
+    evidence families, not on a readable token alone.
+  </figcaption>
+</figure>
 
 ## Research Question
 
@@ -60,17 +88,56 @@ an intermediate residual-stream activation. This assumes that a representation
 has roughly the same basis at the intermediate layer and at the final layer.
 That assumption becomes weaker when later layers transform the representation.
 
-The Jacobian lens instead estimates how a perturbation at layer \(l\) changes the
-final residual state:
+The Jacobian lens instead estimates how a perturbation at source position \(t\)
+and layer \(l\) changes final-layer states at the current and future positions
+\(t' \geq t\):
 
 ```text
-J_l = E[dh_final / dh_l]
-lens_l(h) = unembed(J_l @ h)
+J_l = E_prompt,t,t'≥t[∂h_final,t' / ∂h_l,t]
+lens_l(h) = softmax(W_U · norm(J_l h))
 ```
 
-The expectation averages the local input-output transformation over prompts.
-The result is still a linear readout, but it incorporates an empirical estimate
-of how later layers transport the activation.
+The paper fits one matrix per layer using 1,000 pretraining-like sequences of
+128 tokens. The expectation averages the local input-output transformation
+over prompts, source positions, and current-and-future target positions. The
+result is still a linear readout, but it incorporates an empirical estimate of
+how later layers transport the activation.
+
+<figure className="research-figure">
+  <div className="research-figure__header">
+    <span className="figure-kicker">Method</span>
+    <strong>How an intermediate activation becomes readable</strong>
+  </div>
+  <div className="method-flow" aria-label="Jacobian lens calculation flow">
+    <div className="flow-node">
+      <span>1</span>
+      <strong>Intermediate state</strong>
+      <code>h_l,t</code>
+    </div>
+    <span className="flow-arrow" aria-hidden="true">→</span>
+    <div className="flow-node">
+      <span>2</span>
+      <strong>Average transport</strong>
+      <code>J_l h_l,t</code>
+    </div>
+    <span className="flow-arrow" aria-hidden="true">→</span>
+    <div className="flow-node">
+      <span>3</span>
+      <strong>Final norm + unembed</strong>
+      <code>W_U norm(·)</code>
+    </div>
+    <span className="flow-arrow" aria-hidden="true">→</span>
+    <div className="flow-node">
+      <span>4</span>
+      <strong>Ranked tokens</strong>
+      <code>concept scores</code>
+    </div>
+  </div>
+  <figcaption>
+    Unlike the logit lens, the J-lens first transports an activation into the
+    final-layer representational basis.
+  </figcaption>
+</figure>
 
 ### What This Buys Us
 
@@ -91,8 +158,16 @@ concepts that do not align cleanly with one vocabulary token.
 ## What Is J-Space?
 
 The paper treats active workspace content as a sparse, nonnegative combination
-of J-lens vectors. Intuitively, J-space is the part of activation space that the
-lens can express as a small set of verbalizable concepts.
+of J-lens vectors. The vocabulary-sized set of J-lens vectors is overcomplete
+and may linearly span the entire residual stream. J-space is therefore **not
+simply a low-dimensional linear subspace**. For a sparsity limit \(k\), it is a
+union of cones containing points expressible with at most \(k\) nonnegative
+J-lens coefficients.
+
+The paper varies \(k\), usually keeping it at or below 25. This choice is
+empirical and somewhat arbitrary: around 25 directions are meaningfully active
+at a typical workspace position, but several tokens may jointly express one
+broader concept.
 
 This definition is both useful and restrictive. It gives the authors a readable
 coordinate system for interventions, but it also inherits the vocabulary's
@@ -100,7 +175,65 @@ segmentation and ambiguity. A high-scoring token is evidence of a lens-aligned
 disposition, not by itself proof that the model holds a human-like belief or
 intention.
 
+<figure className="research-figure">
+  <div className="research-figure__header">
+    <span className="figure-kicker">Capacity</span>
+    <strong>Small active inventory, small share of the full activation</strong>
+  </div>
+  <div className="metric-bars">
+    <div className="metric-bar">
+      <div><strong>Typical occupancy</strong><span>about 25 directions</span></div>
+      <div className="metric-bar__track" aria-label="Typical occupancy approximately 25 directions">
+        <span style={{ width: "50%" }}></span>
+      </div>
+      <small>Illustrative scale: 0–50 directions</small>
+    </div>
+    <div className="metric-bar">
+      <div><strong>Excess variance explained</strong><span>never above 10%</span></div>
+      <div className="metric-bar__track" aria-label="Excess activation variance explained never exceeds 10 percent">
+        <span className="is-rust" style={{ width: "20%" }}></span>
+      </div>
+      <small>Illustrative scale: 0–50% of activation variance</small>
+    </div>
+  </div>
+  <figcaption>
+    These measurements support selectivity, but occupancy is not a literal
+    count of independent ideas.
+  </figcaption>
+</figure>
+
+## Does The Lens Actually Improve Readout?
+
+The paper compares J-lens with two alternatives across six distributions:
+multihop, multilingual, order-of-operations, poetry, typo correction, and
+association.
+
+| Method | What it assumes or optimizes | Observed behavior |
+| --- | --- | --- |
+| Logit lens | Intermediate and final layers share coordinates | Useful in later layers; becomes noisy earlier |
+| Tuned lens | A learned map should match the final output distribution | Often skips intermediates and predicts the eventual answer |
+| J-lens | Average causal transport to the final layer | Best intermediate recovery on all six distributions |
+
+The comparison is not only correlational. On multihop tasks, ablating J-lens
+directions produces roughly twice the output KL divergence of ablating logit-
+or tuned-lens directions. Coordinate swaps also redirect outputs more often
+across three model scales.
+
 ## The Evidence Ladder
+
+<figure className="research-figure">
+  <div className="research-figure__header">
+    <span className="figure-kicker">Evidence ladder</span>
+    <strong>Each rung rules out a weaker explanation</strong>
+  </div>
+  <ol className="evidence-ladder">
+    <li><span>Read</span><strong>A relevant token appears</strong><p>Better than guessing, but still correlational.</p></li>
+    <li><span>Swap</span><strong>Changing a coordinate changes report</strong><p>Links the direction causally to output.</p></li>
+    <li><span>Reason</span><strong>An unspoken intermediate redirects a conclusion</strong><p>Moves beyond report preparation.</p></li>
+    <li><span>Reuse</span><strong>One representation serves multiple functions</strong><p>Supports a shared representational format.</p></li>
+    <li><span>Select</span><strong>Ablation harms flexible tasks selectively</strong><p>Separates workspace-like processing from routine computation.</p></li>
+  </ol>
+</figure>
 
 ### 1. Verbal Report
 
@@ -174,6 +307,64 @@ damaged everything, general degradation could explain the behavioral effect.
 **What remains open.** The paper does not yet give a general predictive rule for
 which tasks require J-space and which bypass it.
 
+## Structural Evidence
+
+The five functional tests show what J-space contents can do. The paper then
+asks whether the model's weights and layer organization are also arranged like
+a workspace.
+
+### Three Layer Regimes
+
+<figure className="research-figure">
+  <div className="research-figure__header">
+    <span className="figure-kicker">Depth</span>
+    <strong>J-space changes role across the network</strong>
+  </div>
+  <div className="layer-band" aria-label="Sensory, workspace, and motor layer regimes">
+    <div className="is-sensory">
+      <strong>Sensory</strong>
+      <span>early third</span>
+      <p>Readouts are sparse, noisy, and weakly interpretable.</p>
+    </div>
+    <div className="is-workspace">
+      <strong>Workspace</strong>
+      <span>long middle band</span>
+      <p>Concepts become coherent, reusable, and causally active.</p>
+    </div>
+    <div className="is-motor">
+      <strong>Motor</strong>
+      <span>final layers</span>
+      <p>Readouts align sharply with imminent output.</p>
+    </div>
+  </div>
+  <figcaption>
+    Exact boundaries vary by model. The paper reports 25 evenly spaced layers
+    on a normalized 0–100 depth axis rather than one universal layer number.
+  </figcaption>
+</figure>
+
+### Ignition, Capacity, And Broadcast
+
+**Ignition.** Mixed country-token embeddings initially produce smooth,
+interpolated states. Around workspace onset, the model commits sharply to one
+interpretation, with especially bimodal responses inside J-space. This resembles
+an ignition-like transition, though the authors do not claim it reproduces the
+brain's recurrent ignition mechanism.
+
+**Capacity.** Unrelated list items displace one another: only about six recent
+items are detectable across the workspace band, and only one or two at a single
+layer. Related items behave differently because J-space represents their shared
+category rather than storing every item independently.
+
+**Broadcast across depth.** Workspace-aligned directions are amplified by MLPs
+far more strongly than random or ordinary neuron-output directions, reaching
+roughly 10x normalized gain in parts of the workspace band.
+
+**Broadcast across positions.** A small set of attention heads preferentially
+preserves and relays J-space directions. Ablating the top 1% of these heads
+reduces workspace-content recall and injected-thought reportability much more
+than layer-matched random-head ablations.
+
 ## Why The Workspace Interpretation Is Plausible
 
 No single experiment establishes a global workspace. The interpretation becomes
@@ -198,10 +389,22 @@ analogue, or a complete account of model cognition.
 
 ## Safety Auditing
 
-The paper reports alignment-auditing cases in which J-lens readouts surface
-concepts associated with evaluation awareness, manipulation, fabricated
-findings, panic, or prompt-injection recognition even when those concepts are not
-present in the visible output.
+The paper applies J-lens to six production-model audit scenarios and two model
+organisms with deliberately implanted objectives. It reports concepts associated
+with evaluation awareness, blackmail opportunity, manipulation, fabricated
+findings, panic, hidden actions, and prompt-injection recognition before or
+without explicit surface disclosure.
+
+| Evidence level | Example | What is justified |
+| --- | --- | --- |
+| Case study | `fake`, `injection`, and `fraud` appear at decision-relevant positions | The readout surfaces a plausible internal assessment |
+| Behavioral intervention | Removing evaluation-awareness directions changes blackmail behavior | Those directions causally contribute in this scenario |
+| Model-organism comparison | Deception-related tokens distinguish trained checkpoints on ordinary prompts | J-lens can screen for some trained-in dispositions |
+
+In the blackmail experiment, removing evaluation-awareness directions reduces
+verbalized test recognition from 71% to 3% and increases attempted blackmail
+from 0/180 to 13/180 rollouts. Most ablated rollouts still refuse blackmail, so
+evaluation awareness is one contributor rather than the sole safety mechanism.
 
 The appropriate unit of evidence is:
 
@@ -234,6 +437,47 @@ The ablation result strengthens that chain, but it should not be generalized
 into a universal recipe for alignment. The result is tied to the studied tasks,
 model settings, and the concepts the lens can resolve.
 
+<figure className="research-figure">
+  <div className="research-figure__header">
+    <span className="figure-kicker">Reflection training</span>
+    <strong>Dishonesty score, lower is better</strong>
+  </div>
+  <div className="comparison-chart">
+    <div className="comparison-chart__group">
+      <strong>Fabrication benchmark</strong>
+      <div><span>Baseline</span><i style={{ width: "50%" }}></i><b>0.25</b></div>
+      <div><span>Reflection-trained</span><i className="is-good" style={{ width: "14%" }}></i><b>0.07</b></div>
+      <div><span>Trained + ablation</span><i className="is-rust" style={{ width: "44%" }}></i><b>0.22</b></div>
+    </div>
+    <div className="comparison-chart__group">
+      <strong>Deception benchmark</strong>
+      <div><span>Baseline</span><i style={{ width: "76%" }}></i><b>0.38</b></div>
+      <div><span>Reflection-trained</span><i className="is-good" style={{ width: "10%" }}></i><b>0.05</b></div>
+      <div><span>Trained + ablation</span><i className="is-rust" style={{ width: "46%" }}></i><b>0.23</b></div>
+    </div>
+  </div>
+  <figcaption>
+    Scale shown is 0–0.5. Ablation nearly removes the fabrication improvement
+    but only partially reverses the deception improvement.
+  </figcaption>
+</figure>
+
+## Beyond Single-Token Readouts
+
+The paper's appendix does not stop at naming the single-token limitation. It
+tests two extensions:
+
+| Extension | Idea | Strength | Cost or risk |
+| --- | --- | --- | --- |
+| Template lens | Build a direction for each predefined word or phrase from many continuation contexts | Handles enumerated multi-token concepts and supports swaps | Requires a predefined vocabulary and many forward passes per concept |
+| Oracle lens | Generate arbitrary phrases, reconstruct them into template directions, and optimize reconstruction | Produces richer relational descriptions such as “blackmail him by revealing” | More complex, lower reconstruction accuracy, and still model-mediated |
+
+The oracle lens is especially relevant to Natural Language Autoencoders. Both
+use a verbalizer and reconstructor, but the oracle lens freezes a separately
+trained reconstructor and constrains reconstruction to linear combinations of
+template directions. The authors hypothesize that this may reduce confabulation
+relative to NLA, at the cost of substantially lower reconstruction accuracy.
+
 ## Alternative Explanations And Stress Tests
 
 The workspace interpretation would weaken if:
@@ -256,11 +500,24 @@ may be split or missed.
 **Bag-of-concepts view.** A set of active tokens does not reveal who did what to
 whom, nor how concepts are bound into a structured proposition.
 
+**Inconsistent interpretability.** Some workspace-layer readouts remain
+unintelligible, and the paper does not systematically characterize when or why.
+
 **Averaging.** A context-averaged Jacobian may suppress rare or conditional
 routes that matter for safety.
 
 **Coverage.** Automatic, nonverbal, or deliberately obfuscated computation may
 bypass the readable subspace.
+
+**Workspace versus motor boundary.** The late-layer boundary is empirically
+identified and somewhat post-hoc; imminent output sometimes appears in the
+middle regime too.
+
+**Selection mechanism.** The paper shows that task instructions change what
+enters J-space but does not identify the mechanism that performs this selection.
+
+**Early-layer ambiguity.** Weak early readouts may indicate an empty workspace
+or merely a failure of the averaged lens far from the final-layer basis.
 
 **Scaling and access.** The reference method can be run on open decoder models,
 but that does not reproduce the paper's Claude-scale evidence.

@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Run a pre-fitted Jacobian lens on an open-weights decoder model."
 requires-python = ">=3.10"
 dependencies = [
-  "jlens @ git+https://github.com/anthropics/jacobian-lens.git",
+  "jlens @ git+https://github.com/anthropics/jacobian-lens.git@581d398613e5602a5af361e1c34d3a92ea82ba8e",
   "torch",
   "transformers>=5.5",
   "huggingface_hub",

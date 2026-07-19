@@ -3,6 +3,9 @@
 This folder is a uv-managed execution environment for running a pre-fitted
 Jacobian lens on an open HuggingFace decoder model.
 
+The `jlens` dependency is pinned to Anthropic's audited initial-release commit
+`581d398`, and `uv.lock` fixes the complete dependency graph.
+
 ## Setup
 
 ```bash
