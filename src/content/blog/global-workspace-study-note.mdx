@@ -1,0 +1,305 @@
+---
+title: "Study Note: Global Workspace and the Jacobian Lens"
+description: An evidence-led study of J-lens, J-space, the five functional tests, safety auditing, and the limits of the workspace claim.
+date: 2026-07-19
+paper: Verbalizable Representations Form a Global Workspace in Language Models
+track: Interpretability
+tags: [interpretability, anthropic, transformer-circuits, jacobian-lens, j-space, global-workspace, safety]
+status: deep study; reproduction pending
+format: study-note
+priority: 1
+sourceUrl: https://transformer-circuits.pub/2026/workspace/index.html
+codeUrl: https://github.com/anthropics/jacobian-lens
+---
+
+## How To Read This Note
+
+This note separates four things that are easy to blur together:
+
+1. **Claim:** what the paper says.
+2. **Evidence:** what experiment supports that claim.
+3. **Interpretation:** what follows if the evidence holds.
+4. **Boundary:** what the experiment does not establish.
+
+The paper's argument is cumulative. Decoding a concept is only the first rung.
+The more consequential evidence comes from interventions, transfer across
+contexts, and selective impairment.
+
+After this note, continue with the
+[official-code walkthrough](https://hyungrok-oh.github.io/latent-workspace/posts/jacobian-lens-code-walkthrough/).
+The separate
+[research commentary](https://hyungrok-oh.github.io/latent-workspace/posts/global-workspace-jacobian-lens/)
+asks what this work might mean for agent safety.
+
+## One-Sentence Claim
+
+The paper reports that a small subset of language-model activations can be read
+as verbalizable concepts and can participate in report, control, reasoning, and
+flexible reuse, while much routine computation remains outside that subset.
+The authors call this subset **J-space** and interpret its functional profile as
+a global workspace.
+
+## Research Question
+
+The scientific question is not whether an LLM is conscious. It is whether some
+internal representations occupy a privileged computational role:
+
+- Can their contents be verbally reported?
+- Can instructions summon or modulate them?
+- Are they used during internal reasoning?
+- Can the same representation be reused by different downstream computations?
+- Is their role selective rather than necessary for all computation?
+
+These are operational questions. The phrase "global workspace" is justified only
+to the extent that the experiments support this bundle of functions.
+
+## Method: From Logit Lens To Jacobian Lens
+
+A standard logit lens applies the model's final unembedding matrix directly to
+an intermediate residual-stream activation. This assumes that a representation
+has roughly the same basis at the intermediate layer and at the final layer.
+That assumption becomes weaker when later layers transform the representation.
+
+The Jacobian lens instead estimates how a perturbation at layer \(l\) changes the
+final residual state:
+
+```text
+J_l = E[dh_final / dh_l]
+lens_l(h) = unembed(J_l @ h)
+```
+
+The expectation averages the local input-output transformation over prompts.
+The result is still a linear readout, but it incorporates an empirical estimate
+of how later layers transport the activation.
+
+### What This Buys Us
+
+**Claim.** J-lens directions correspond to concepts that an intermediate state
+is disposed to make the model verbalize across contexts.
+
+**Evidence type.** The method produces token-level readouts and supports
+interventions along the same token-indexed directions.
+
+**Interpretation.** Compared with directly unembedding an early activation, the
+averaged Jacobian can compensate for systematic representational change across
+layers.
+
+**Boundary.** An averaged local derivative is not a complete causal model. It can
+miss context-specific nonlinear transformations, distributed relations, and
+concepts that do not align cleanly with one vocabulary token.
+
+## What Is J-Space?
+
+The paper treats active workspace content as a sparse, nonnegative combination
+of J-lens vectors. Intuitively, J-space is the part of activation space that the
+lens can express as a small set of verbalizable concepts.
+
+This definition is both useful and restrictive. It gives the authors a readable
+coordinate system for interventions, but it also inherits the vocabulary's
+segmentation and ambiguity. A high-scoring token is evidence of a lens-aligned
+disposition, not by itself proof that the model holds a human-like belief or
+intention.
+
+## The Evidence Ladder
+
+### 1. Verbal Report
+
+**Claim.** Contents that the model later reports are represented in J-space.
+
+**Evidence.** The paper reads the selected concept before report and uses concept
+swaps to redirect what the model subsequently says.
+
+**Why it matters.** A causal swap is stronger than observing a correlated token:
+the decoded coordinate is connected to later behavior.
+
+**What remains open.** Changing a report does not yet show that the same
+representation is used by non-report computations.
+
+### 2. Directed Modulation
+
+**Claim.** Instructions can summon relevant content into J-space even when the
+content is not immediately emitted.
+
+**Evidence.** Tasks involving holding a concept in mind, introspection, or mental
+calculation produce relevant readouts; injected concept directions can also
+affect later introspective report.
+
+**Why it matters.** This separates the candidate workspace from a readout of only
+the next token.
+
+**What remains open.** Some silent readouts may still be preparation for a
+delayed response rather than a general-purpose intermediate state.
+
+### 3. Internal Reasoning
+
+**Claim.** Intermediate results can enter J-space and causally influence later
+conclusions.
+
+**Evidence.** The paper tracks intermediate concepts during multi-step tasks and
+intervenes on those representations to redirect downstream answers.
+
+**Why it matters.** This connects J-space to computation, not only to
+verbalization.
+
+**What remains open.** The demonstrations do not imply that all reasoning, or
+even all flexible reasoning, must pass through J-space.
+
+### 4. Flexible Generalization
+
+**Claim.** A J-space representation can be transferred between contexts and used
+as an input to a different downstream operation.
+
+**Evidence.** The paper moves representations across tasks and tests whether the
+receiving computation can operate on them.
+
+**Why it matters.** Cross-context reuse is central to the workspace
+interpretation: a shared format should be consumable by more than one specialized
+process.
+
+**What remains open.** Successful transfers establish examples of shared format,
+not a proof that J-space is universally shared across domains.
+
+### 5. Selectivity
+
+**Claim.** J-space is important for some flexible computations but is not the
+whole residual stream.
+
+**Evidence.** The paper reports that J-space captures a limited fraction of
+activation variance and that ablation selectively harms some flexible tasks
+while leaving much routine fluency, parsing, and automatic computation intact.
+
+**Why it matters.** Selectivity makes the claim sharper. If the intervention
+damaged everything, general degradation could explain the behavioral effect.
+
+**What remains open.** The paper does not yet give a general predictive rule for
+which tasks require J-space and which bypass it.
+
+## Why The Workspace Interpretation Is Plausible
+
+No single experiment establishes a global workspace. The interpretation becomes
+plausible because the same representational family appears across a bundle of
+functions:
+
+```text
+readable content
+  -> causal report
+  -> top-down modulation
+  -> intermediate reasoning
+  -> cross-context reuse
+  -> selective dependence
+```
+
+The strongest defensible conclusion is therefore functional and limited:
+**some verbalizable representations behave like a shared, causally useful
+workspace.**
+
+The evidence does not establish phenomenological consciousness, a human brain
+analogue, or a complete account of model cognition.
+
+## Safety Auditing
+
+The paper reports alignment-auditing cases in which J-lens readouts surface
+concepts associated with evaluation awareness, manipulation, fabricated
+findings, panic, or prompt-injection recognition even when those concepts are not
+present in the visible output.
+
+The appropriate unit of evidence is:
+
+```text
+internal readout + trajectory context + behavioral outcome + intervention
+```
+
+A decoded token alone is too ambiguous to label as intent. For agent systems,
+J-space should be treated as one telemetry channel alongside the transcript,
+tool calls, memory state, and targeted behavioral tests.
+
+## Counterfactual Reflection Training
+
+The paper also asks whether training can change behavior by changing workspace
+content. In counterfactual reflection training, ethical reflection is added in a
+hypothetical continuation rather than inserted into the original interaction.
+The authors report improved behavior in the uninterrupted context, the appearance
+of ethics-related concepts in J-space, and substantial loss of the improvement
+when those concepts are ablated.
+
+This is suggestive of a causal chain:
+
+```text
+reflection training
+  -> ethics-related J-space content
+  -> changed behavior
+```
+
+The ablation result strengthens that chain, but it should not be generalized
+into a universal recipe for alignment. The result is tied to the studied tasks,
+model settings, and the concepts the lens can resolve.
+
+## Alternative Explanations And Stress Tests
+
+The workspace interpretation would weaken if:
+
+- readouts could be predicted almost entirely from prompt text or output logits;
+- interventions changed verbal reports but not independent downstream tasks;
+- ablations caused broad damage rather than selective impairment;
+- cross-context transfer failed outside curated settings;
+- open-model replications did not recover the same functional ladder.
+
+Useful controls include prompt-matched baselines, random-direction interventions,
+logit-lens comparisons, held-out contexts, specificity tests, and preregistered
+predictions about which tasks should depend on J-space.
+
+## Limitations
+
+**Single-token bottleneck.** Relational, compositional, and multi-token concepts
+may be split or missed.
+
+**Bag-of-concepts view.** A set of active tokens does not reveal who did what to
+whom, nor how concepts are bound into a structured proposition.
+
+**Averaging.** A context-averaged Jacobian may suppress rare or conditional
+routes that matter for safety.
+
+**Coverage.** Automatic, nonverbal, or deliberately obfuscated computation may
+bypass the readable subspace.
+
+**Scaling and access.** The reference method can be run on open decoder models,
+but that does not reproduce the paper's Claude-scale evidence.
+
+## Reproduction Status
+
+Our current evidence has three levels:
+
+| Level | Status | What it establishes |
+| --- | --- | --- |
+| Conceptual audit | Complete | The claims, evidence ladder, assumptions, and limitations have been separated. |
+| Official-code audit | Complete | The released implementation matches the high-level J-lens method and exposes fitting and baseline paths. |
+| Open-model run | Prepared | A uv-managed Qwen runbook exists for the 48GB Mac; empirical results are not yet available. |
+
+This means we have studied and inspected the method, but we have not independently
+replicated the paper's functional results.
+
+## Understanding Check
+
+After studying this paper, we should be able to answer:
+
+1. Why is an averaged Jacobian different from directly applying the unembedding?
+2. Why is a concept swap stronger evidence than a readable token alone?
+3. Why does selectivity strengthen the workspace claim?
+4. Which conclusions depend on the global-workspace analogy, and which do not?
+5. Why can J-space auditing be useful even if it is incomplete?
+6. What result from a small open model would count as evidence, and what would
+   remain unreproduced?
+
+## Current Assessment
+
+My confidence is highest in the methodological claim that J-lens supplies a
+useful token-indexed read/write interface for some intermediate activations.
+It is moderate in the functional workspace interpretation because the evidence
+is cumulative and intervention-based, but task coverage remains uncertain.
+It is low in any claim that treats J-space as a complete monitor of reasoning or
+intent.
+
+## References
+
+- Anthropic / Transformer Circuits, "Verbalizable Representations Form a Global Workspace in Language Models," 2026. https://transformer-circuits.pub/2026/workspace/index.html
+- Anthropic, `anthropics/jacobian-lens`, reference implementation. https://github.com/anthropics/jacobian-lens

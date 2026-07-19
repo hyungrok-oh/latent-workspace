@@ -1,0 +1,219 @@
+---
+title: "Code Walkthrough: Anthropic's Jacobian Lens"
+description: A source-led walkthrough of fitting, applying, and evaluating the official Jacobian Lens implementation.
+date: 2026-07-19
+paper: Verbalizable Representations Form a Global Workspace in Language Models
+track: Interpretability
+tags: [interpretability, anthropic, jacobian-lens, source-code, huggingface, reproducibility]
+status: official code audited; runtime experiment prepared
+format: code-walkthrough
+priority: 2
+sourceUrl: https://transformer-circuits.pub/2026/workspace/index.html
+codeUrl: https://github.com/anthropics/jacobian-lens
+---
+
+## Scope
+
+This walkthrough answers a narrower question than the
+[paper study note](https://hyungrok-oh.github.io/latent-workspace/posts/global-workspace-study-note/):
+**what does Anthropic's public repository actually implement, and what can we
+realistically reproduce with it?**
+
+The repository is a reference implementation and companion to the paper. It
+supports direct engagement with the method on open-weight decoder transformers.
+It does not, by itself, reproduce the paper's Claude-scale findings.
+
+## Repository Map
+
+The core implementation is concentrated in a few modules:
+
+| Area | Responsibility |
+| --- | --- |
+| `jlens/fitting.py` | Estimate per-layer averaged Jacobians from prompts. |
+| `jlens/lens.py` | Store, load, merge, and apply a fitted Jacobian lens. |
+| `jlens/hf.py` | Adapt supported Hugging Face decoder models to the package interface. |
+| `jlens/protocol.py` | Define the model-facing protocol expected by fitting and inference. |
+| `jlens/examples.py` | Provide example usage and visualization paths. |
+| `data/experiments/` | Supply prompt sets related to workspace-function experiments. |
+| `data/evaluations/` | Supply prompts for lens-quality checks across several task types. |
+
+This layout reflects a useful separation: model adaptation, lens estimation,
+lens application, and experimental prompts are distinct concerns.
+
+## 1. The Model Adapter
+
+The fitting code does not need to know the internal class layout of every model.
+The Hugging Face adapter exposes a common interface for decoder-only
+transformers, including access to layer activations, tokenization, and the final
+unembedding.
+
+The practical consequence is broad model compatibility, not universal
+compatibility. A model still needs a recognized decoder layout and the expected
+residual-stream hooks. Architecture support should be checked before interpreting
+a load failure as a scientific result.
+
+## 2. Fitting A Jacobian
+
+The core estimator in `jacobian_for_prompt` measures how intermediate
+residual-stream dimensions affect later final-layer dimensions.
+
+Conceptually, for each prompt and layer it estimates:
+
+```text
+J_l = dh_final / dh_l
+```
+
+The implementation batches Jacobian rows using a `dim_batch` parameter. For one
+prompt, the dominant schedule is:
+
+```text
+1 forward pass + ceil(d_model / dim_batch) backward passes
+```
+
+Increasing `dim_batch` reduces the number of backward passes but raises peak
+memory usage. On a 48GB Apple Silicon Mac, this is the main tuning parameter for
+finding a workable memory-time tradeoff.
+
+### Position Handling
+
+The estimator does not average every token position indiscriminately. The
+audited implementation:
+
+- skips an initial prefix by default;
+- excludes the final position, which has no subsequent next-token target;
+- aggregates effects from a source position to current-and-future target
+  positions;
+- averages valid source positions and then averages over prompts.
+
+These choices are part of the estimator, not incidental data cleaning. Changing
+them changes the object being estimated and should be recorded in any
+reproduction.
+
+## 3. From Jacobian To Token Readout
+
+Once a per-layer Jacobian is fitted, application follows the paper's basic form:
+
+```text
+transformed = J_l @ h_l
+token_scores = unembed(transformed)
+```
+
+The repository's `JacobianLens.apply` path can also disable the Jacobian and use
+the unembedding directly. That gives a vanilla logit-lens baseline under the same
+application interface.
+
+This baseline matters scientifically. A J-lens example is more informative when
+we can show that it recovers a useful intermediate concept more clearly or
+earlier than direct unembedding.
+
+## 4. Loading And Reusing Lenses
+
+The package can save and load fitted lenses and can fetch pre-fitted artifacts
+from a Hugging Face-style repository. It also supports merging lenses fitted on
+disjoint prompt slices.
+
+This creates two reproduction paths:
+
+1. **Apply a pre-fitted lens.** Lower compute cost; tests the application and
+   readout path.
+2. **Fit a local lens.** Higher compute cost; tests the estimator and exposes
+   corpus and hyperparameter sensitivity.
+
+The first path is the correct initial run on the 48GB Mac. It validates the
+environment before we spend time on repeated backward passes.
+
+## 5. Experimental Assets
+
+The repository includes prompt sets associated with several workspace
+properties, including verbal report, directed modulation, flexible
+generalization, selectivity, ignition, capacity, and dual-task interference.
+It also includes lens-evaluation prompts for task families such as multihop and
+multilingual reasoning, poetry, arithmetic order, association, and typo
+correction.
+
+These assets are a partial experimental scaffold. They are not a push-button
+reproduction suite for every result in the paper. A careful run still needs
+model-specific prompts, metrics, controls, and a record of lens provenance.
+
+## What The Repository Does Not Provide
+
+- Claude model weights or internal activations.
+- A local reproduction of the paper's complete empirical evidence.
+- A guarantee that a lens fitted on one model or corpus transfers to another.
+- A semantic verifier that turns high-scoring tokens into beliefs or intentions.
+- A maintained production-library commitment; the repository describes itself
+  as reference code.
+
+This boundary is essential. Public method code makes method reproduction
+possible. It does not make every paper claim independently verified.
+
+## Our Runtime Path
+
+The local experiment is prepared under
+`experiments/006-small-open-model-jlens/` with:
+
+- a uv-managed Python 3.11 environment;
+- the official `jlens` package installed from Anthropic's repository;
+- a pre-fitted Qwen lens configuration;
+- Apple Silicon `mps` and `float16` options;
+- side-by-side J-lens and logit-lens token readouts.
+
+The intended sequence on the 48GB Mac is:
+
+```bash
+cd experiments/006-small-open-model-jlens
+uv python install 3.11
+uv sync
+uv run python run_prefitted.py --check-env
+uv run python run_prefitted.py --device mps --dtype float16 --markdown
+```
+
+No empirical claim should be added to the blog until the model, lens artifact,
+device, prompts, layers, outputs, and failure modes are recorded.
+
+## Reading The Output Carefully
+
+For each prompt and layer, our script prints top tokens from both J-lens and
+logit lens. A useful observation would look like:
+
+```text
+The J-lens ranks a task-relevant concept above the baseline at a specified
+layer and position, and the result survives prompt paraphrases and controls.
+```
+
+An overclaim would look like:
+
+```text
+The model believes or intends whatever token appears at rank one.
+```
+
+Token scores are hypotheses about an internal representation. Stronger claims
+need behavioral correspondence, negative controls, and ideally a targeted
+intervention.
+
+## Reproduction Checklist
+
+- Pin the model revision, lens revision, package commit, and uv lockfile.
+- Record device, dtype, memory use, and runtime.
+- Compare against the package's no-Jacobian baseline.
+- Use prompt paraphrases and unrelated control prompts.
+- Inspect multiple layers and predeclare the positions of interest.
+- Separate successful environment execution from scientific replication.
+- Publish negative and ambiguous results, not only readable examples.
+
+## What We Learned From The Code
+
+The official implementation supports the paper's high-level method description:
+it estimates context-averaged layer-to-final transformations and composes them
+with the unembedding. It also reveals the practical cost hidden by the compact
+formula: fitting requires repeated backward passes, and memory is traded against
+runtime through Jacobian-row batching.
+
+The code therefore changes our study from speculative reimplementation to direct
+method inspection. It does not eliminate the harder scientific work of testing
+whether the reported functional properties replicate across models and scales.
+
+## References
+
+- Anthropic, `anthropics/jacobian-lens`. https://github.com/anthropics/jacobian-lens
+- Anthropic / Transformer Circuits, "Verbalizable Representations Form a Global Workspace in Language Models," 2026. https://transformer-circuits.pub/2026/workspace/index.html

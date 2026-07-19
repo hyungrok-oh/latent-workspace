@@ -10,6 +10,8 @@ const blog = defineCollection({
     track: z.string(),
     tags: z.array(z.string()),
     status: z.string(),
+    format: z.enum(["study-note", "code-walkthrough", "commentary"]),
+    priority: z.number().int().nonnegative(),
     sourceUrl: z.string().url().optional(),
     codeUrl: z.string().url().optional(),
   }),

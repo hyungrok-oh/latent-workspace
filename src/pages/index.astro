@@ -3,9 +3,16 @@ import { getCollection } from "astro:content";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 
 const posts = (await getCollection("blog")).sort(
-  (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
+  (a, b) =>
+    a.data.priority - b.data.priority ||
+    b.data.date.valueOf() - a.data.date.valueOf(),
 );
 const tracks = ["Interpretability", "Agent Architecture", "Safety"];
+const formatLabels = {
+  "study-note": "Study Note",
+  "code-walkthrough": "Code Walkthrough",
+  commentary: "Research Commentary",
+};
 const base = import.meta.env.BASE_URL.endsWith("/")
   ? import.meta.env.BASE_URL
   : `${import.meta.env.BASE_URL}/`;
@@ -37,15 +44,20 @@ const base = import.meta.env.BASE_URL.endsWith("/")
 
   <section class="content-shell">
     <div class="section-heading">
-      <p class="eyebrow">Notes</p>
-      <h2>Latest research posts</h2>
+      <p class="eyebrow">Research sequence</p>
+      <h2>Study the paper, inspect the code, then debate the claim</h2>
+      <p>
+        Mature topics are developed in three passes: an evidence-led study note,
+        a source-code walkthrough when code is available, and a separate
+        commentary for broader interpretation.
+      </p>
     </div>
     <div class="post-list">
       {
         posts.map((post) => (
           <article class="post-card">
             <div>
-              <p class="post-track">{post.data.track}</p>
+              <p class="post-track">{formatLabels[post.data.format]} · {post.data.track}</p>
               <h3>
                 <a href={`${base}posts/${post.slug}/`}>{post.data.title}</a>
               </h3>
