@@ -34,6 +34,14 @@ const { Content } = await render(post);
           <dd>{post.data.status}</dd>
         </div>
         {
+          post.data.updated && (
+            <div>
+              <dt>Updated</dt>
+              <dd>{post.data.updated.toLocaleDateString("en", { month: "short", day: "numeric", year: "numeric" })}</dd>
+            </div>
+          )
+        }
+        {
           post.data.sourceUrl && (
             <div>
               <dt>Source</dt>
