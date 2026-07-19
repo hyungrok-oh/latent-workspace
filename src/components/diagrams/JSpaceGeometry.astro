@@ -1,0 +1,331 @@
+<figure class="research-figure geometry-diagram">
+  <div class="research-figure__header">
+    <span class="figure-kicker">J-space geometry</span>
+    <strong>From many directions to one sparse cone</strong>
+  </div>
+
+  <div class="geometry-flow">
+    <section class="dictionary-panel">
+      <header><span>1</span><strong>Many candidate directions</strong></header>
+      <div class="token-field" aria-label="Illustrative overcomplete token dictionary">
+        <i>animal</i><i class="is-selected">spider</i><i>silk</i><i>crawl</i>
+        <i>insect</i><i class="is-selected">web</i><i>legs</i><i>small</i>
+        <i>count</i><i>six</i><i class="is-selected">eight</i><i>answer</i>
+      </div>
+      <p><code>n_vocab &gt; d_model</code></p>
+    </section>
+
+    <div class="geometry-arrow" aria-hidden="true"><span>choose ≤ k</span>→</div>
+
+    <section class="mixture-panel">
+      <header><span>2</span><strong>Nonnegative sparse mixture</strong></header>
+      <div class="coefficient-list">
+        <div><span>spider</span><b style="--value: 82%"></b><code>0.82</code></div>
+        <div><span>web</span><b style="--value: 54%"></b><code>0.54</code></div>
+        <div><span>eight</span><b style="--value: 31%"></b><code>0.31</code></div>
+      </div>
+      <p><code>h_J = Σ a_i v_i</code> with <code>a_i ≥ 0</code></p>
+    </section>
+
+    <div class="geometry-arrow" aria-hidden="true"><span>one support set</span>→</div>
+
+    <section class="cone-panel">
+      <header><span>3</span><strong>One local cone</strong></header>
+      <div class="cone-plot" aria-hidden="true">
+        <div class="cone-shape"></div>
+        <i class="ray ray-a"></i>
+        <i class="ray ray-b"></i>
+        <i class="ray ray-c"></i>
+        <b class="origin"></b>
+        <b class="activation"></b>
+      </div>
+      <div class="cone-legend"><span><i></i>origin</span><span><b></b>J-space component</span></div>
+    </section>
+  </div>
+
+  <div class="geometry-takeaway">
+    <strong>J-space is the union of many such cones.</strong>
+    <span>It is not one small linear plane, and the decomposition need not be unique.</span>
+  </div>
+
+  <figcaption>
+    The tokens and coefficients are illustrative. The paper usually limits a
+    local reconstruction to about 25 active directions, but several directions
+    can jointly express one broader concept.
+  </figcaption>
+</figure>
+
+<style>
+  .geometry-diagram {
+    --diagram-teal: #0c6b62;
+    --diagram-rust: #a64f35;
+    --diagram-gold: #9b7a25;
+    container-type: inline-size;
+  }
+
+  .geometry-flow {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) 58px minmax(0, 1fr) 58px minmax(0, 0.9fr);
+    gap: 10px;
+    align-items: stretch;
+  }
+
+  .geometry-flow section {
+    min-width: 0;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 14px;
+    background: #fbfdfc;
+  }
+
+  .geometry-flow header span {
+    display: inline-grid;
+    width: 22px;
+    height: 22px;
+    place-items: center;
+    margin-right: 7px;
+    border: 1px solid #d7b9ad;
+    border-radius: 50%;
+    color: var(--diagram-rust);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 10px;
+    font-weight: 800;
+  }
+
+  .geometry-flow header strong {
+    font-size: 13px;
+  }
+
+  .geometry-flow section > p {
+    margin: 12px 0 0;
+    color: var(--muted);
+    font-size: 11px;
+    text-align: center;
+  }
+
+  .token-field {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-content: center;
+    min-height: 132px;
+    margin-top: 12px;
+  }
+
+  .token-field i {
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 4px 6px;
+    background: var(--paper-muted);
+    color: var(--muted);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 9px;
+    font-style: normal;
+  }
+
+  .token-field i.is-selected {
+    border-color: #92bbb3;
+    background: var(--accent-soft);
+    color: var(--diagram-teal);
+    font-weight: 800;
+  }
+
+  .geometry-arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--line-strong);
+    font-size: 20px;
+    font-weight: 800;
+  }
+
+  .geometry-arrow span {
+    margin-bottom: 6px;
+    color: var(--muted);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 8px;
+    font-weight: 700;
+    text-align: center;
+    text-transform: uppercase;
+  }
+
+  .coefficient-list {
+    display: grid;
+    gap: 11px;
+    margin-top: 20px;
+  }
+
+  .coefficient-list > div {
+    display: grid;
+    grid-template-columns: 48px minmax(0, 1fr) 36px;
+    gap: 7px;
+    align-items: center;
+  }
+
+  .coefficient-list span,
+  .coefficient-list code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 9px;
+    white-space: nowrap;
+  }
+
+  .coefficient-list b {
+    position: relative;
+    display: block;
+    height: 8px;
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    background: var(--paper-muted);
+  }
+
+  .coefficient-list b::after {
+    content: "";
+    display: block;
+    width: var(--value);
+    height: 100%;
+    background: var(--diagram-teal);
+  }
+
+  .cone-plot {
+    position: relative;
+    height: 132px;
+    margin-top: 12px;
+    overflow: hidden;
+    border-bottom: 1px solid var(--line);
+    border-left: 1px solid var(--line);
+    background: var(--paper-muted);
+  }
+
+  .cone-shape {
+    position: absolute;
+    bottom: 18px;
+    left: 22px;
+    width: 80%;
+    height: 86%;
+    clip-path: polygon(0 100%, 100% 8%, 72% 100%);
+    background: #dfeeea;
+    opacity: 0.9;
+  }
+
+  .ray {
+    position: absolute;
+    bottom: 18px;
+    left: 22px;
+    width: 76%;
+    height: 1px;
+    background: var(--diagram-teal);
+    transform-origin: left center;
+  }
+
+  .ray-a { transform: rotate(-51deg); }
+  .ray-b { width: 66%; transform: rotate(-28deg); }
+  .ray-c { width: 57%; transform: rotate(-8deg); }
+
+  .origin,
+  .activation {
+    position: absolute;
+    border-radius: 50%;
+  }
+
+  .origin {
+    bottom: 14px;
+    left: 18px;
+    width: 8px;
+    height: 8px;
+    background: var(--diagram-rust);
+  }
+
+  .activation {
+    right: 26%;
+    bottom: 53%;
+    width: 10px;
+    height: 10px;
+    border: 2px solid #fff;
+    background: var(--diagram-gold);
+    box-shadow: 0 0 0 1px var(--diagram-gold);
+  }
+
+  .cone-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    margin-top: 8px;
+    color: var(--muted);
+    font-size: 9px;
+  }
+
+  .cone-legend span {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+  }
+
+  .cone-legend i,
+  .cone-legend b {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+  }
+
+  .cone-legend i { background: var(--diagram-rust); }
+  .cone-legend b { background: var(--diagram-gold); }
+
+  .geometry-takeaway {
+    display: flex;
+    gap: 10px 18px;
+    align-items: baseline;
+    margin-top: 14px;
+    border-left: 3px solid var(--diagram-rust);
+    padding: 10px 12px;
+    background: var(--accent-2-soft);
+  }
+
+  .geometry-takeaway strong {
+    font-size: 12px;
+  }
+
+  .geometry-takeaway span {
+    color: var(--muted);
+    font-size: 11px;
+  }
+
+  @media (max-width: 760px) {
+    .geometry-flow {
+      grid-template-columns: 1fr;
+    }
+
+    .geometry-arrow {
+      min-height: 28px;
+      transform: rotate(90deg);
+    }
+
+    .geometry-arrow span {
+      display: none;
+    }
+
+    .geometry-takeaway {
+      display: grid;
+    }
+  }
+
+  @container (max-width: 620px) {
+    .geometry-flow {
+      grid-template-columns: 1fr;
+    }
+
+    .geometry-arrow {
+      min-height: 28px;
+      transform: rotate(90deg);
+    }
+
+    .geometry-arrow span {
+      display: none;
+    }
+
+    .geometry-takeaway {
+      display: grid;
+    }
+  }
+</style>

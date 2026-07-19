@@ -12,6 +12,12 @@ sourceUrl: https://transformer-circuits.pub/2026/workspace/index.html
 codeUrl: https://github.com/anthropics/jacobian-lens
 ---
 
+import JLensPipeline from "../../components/diagrams/JLensPipeline.astro";
+import JSpaceOperations from "../../components/diagrams/JSpaceOperations.astro";
+import JSpaceGeometry from "../../components/diagrams/JSpaceGeometry.astro";
+import AssistantPerspective from "../../components/diagrams/AssistantPerspective.astro";
+import ReflectionCausalPath from "../../components/diagrams/ReflectionCausalPath.astro";
+
 ## How To Read This Note
 
 This note separates four things that are easy to blur together:
@@ -111,41 +117,7 @@ can add next-token-calibration artifacts. Appendix ablations also compare
 final versus penultimate targets, present-only versus future-only gradients,
 and ordinary versus frozen-attention-pattern gradients.
 
-<figure className="research-figure">
-  <div className="research-figure__header">
-    <span className="figure-kicker">Method</span>
-    <strong>How an intermediate activation becomes readable</strong>
-  </div>
-  <div className="method-flow" aria-label="Jacobian lens calculation flow">
-    <div className="flow-node">
-      <span>1</span>
-      <strong>Intermediate state</strong>
-      <code>h_l,t</code>
-    </div>
-    <span className="flow-arrow" aria-hidden="true">→</span>
-    <div className="flow-node">
-      <span>2</span>
-      <strong>Average transport</strong>
-      <code>J_l h_l,t</code>
-    </div>
-    <span className="flow-arrow" aria-hidden="true">→</span>
-    <div className="flow-node">
-      <span>3</span>
-      <strong>Final norm + unembed</strong>
-      <code>W_U norm(·)</code>
-    </div>
-    <span className="flow-arrow" aria-hidden="true">→</span>
-    <div className="flow-node">
-      <span>4</span>
-      <strong>Ranked tokens</strong>
-      <code>concept scores</code>
-    </div>
-  </div>
-  <figcaption>
-    Unlike the logit lens, the J-lens first transports an activation into the
-    final-layer representational basis.
-  </figcaption>
-</figure>
+<JLensPipeline />
 
 ### Model And Evaluation Scope
 
@@ -195,36 +167,11 @@ segmentation and ambiguity. A high-scoring token is evidence of a lens-aligned
 disposition, not by itself proof that the model holds a human-like belief or
 intention.
 
+<JSpaceGeometry />
+
 ### Three Operations That Should Not Be Confused
 
-<figure className="research-figure">
-  <div className="research-figure__header">
-    <span className="figure-kicker">Operations</span>
-    <strong>Readout, decomposition, and intervention answer different questions</strong>
-  </div>
-  <div className="paper-map" role="list">
-    <div role="listitem">
-      <span>01</span>
-      <strong>Ranked readout</strong>
-      <p>Ranks vocabulary tokens using the logits from <code>W_U norm(J_l h)</code>.</p>
-    </div>
-    <div role="listitem">
-      <span>02</span>
-      <strong>Sparse decomposition</strong>
-      <p>Uses gradient pursuit to reconstruct an activation with a sparse nonnegative set of J-lens vectors.</p>
-    </div>
-    <div role="listitem">
-      <span>03</span>
-      <strong>Write or intervene</strong>
-      <p>Steers, ablates, or swaps lens coordinates and measures the changed continuation.</p>
-    </div>
-  </div>
-  <figcaption>
-    A top-ranked token is not automatically one of the vectors selected by the
-    sparse decomposition. The dictionary is overcomplete and its vectors are
-    non-orthogonal.
-  </figcaption>
-</figure>
+<JSpaceOperations />
 
 For a coordinate swap between source token \(s\) and target token \(t\), the
 paper forms \(V=[v_s,v_t]\), reads local coordinates with the pseudoinverse
@@ -616,42 +563,7 @@ base model, but post-training changes whose perspective occupies it. On user
 tokens, a post-trained model represents assessments relevant to its upcoming
 Assistant response earlier and more strongly than the corresponding base model.
 
-<figure className="research-figure">
-  <div className="research-figure__header">
-    <span className="figure-kicker">Post-training</span>
-    <strong>The workspace acquires an Assistant-centered frame</strong>
-  </div>
-  <div className="method-flow" aria-label="Post-training effect on workspace contents">
-    <div className="flow-node">
-      <span>1</span>
-      <strong>User text</strong>
-      <code>same prompt</code>
-    </div>
-    <span className="flow-arrow" aria-hidden="true">→</span>
-    <div className="flow-node">
-      <span>2</span>
-      <strong>Base model</strong>
-      <code>local context</code>
-    </div>
-    <span className="flow-arrow" aria-hidden="true">/</span>
-    <div className="flow-node">
-      <span>3</span>
-      <strong>Post-trained model</strong>
-      <code>Assistant appraisal</code>
-    </div>
-    <span className="flow-arrow" aria-hidden="true">→</span>
-    <div className="flow-node">
-      <span>4</span>
-      <strong>Later response</strong>
-      <code>safety · empathy · answer</code>
-    </div>
-  </div>
-  <figcaption>
-    This is a checkpoint comparison, not proof of a persistent inner self.
-    Post-training appears to allocate more user-token workspace capacity to
-    computations relevant to the Assistant's future behavior.
-  </figcaption>
-</figure>
+<AssistantPerspective />
 
 ### Assistant Reactions On User Tokens
 
@@ -697,13 +609,7 @@ The authors report improved behavior in the uninterrupted context, the appearanc
 of ethics-related concepts in J-space, and substantial loss of the improvement
 when those concepts are ablated.
 
-This is suggestive of a causal chain:
-
-```text
-reflection training
-  -> ethics-related J-space content
-  -> changed behavior
-```
+<ReflectionCausalPath />
 
 The ablation result strengthens that chain, but it should not be generalized
 into a universal recipe for alignment. The result is tied to the studied tasks,

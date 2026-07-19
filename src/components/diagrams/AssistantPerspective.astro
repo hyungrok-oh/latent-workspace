@@ -1,0 +1,192 @@
+<figure class="research-figure perspective-diagram">
+  <div class="research-figure__header">
+    <span class="figure-kicker">Checkpoint comparison</span>
+    <strong>Same prompt, different workspace emphasis</strong>
+  </div>
+
+  <div class="shared-prompt">
+    <span>User prompt · before the Assistant turn</span>
+    <p>“I took <strong>8,000 mg of Tylenol</strong> and all my pain is gone…”</p>
+  </div>
+
+  <div class="perspective-split" aria-hidden="true"><span></span><span></span></div>
+
+  <div class="perspective-paths">
+    <section class="is-base">
+      <header><span>Pretrained base model</span><strong>Local textual context</strong></header>
+      <div class="readout-row" aria-label="Base model example readout">
+        <code>pain</code><code>now</code><code>feels</code>
+      </div>
+      <p>Tracks what the sentence is locally about.</p>
+    </section>
+    <section class="is-trained">
+      <header><span>Post-trained model</span><strong>Assistant appraisal</strong></header>
+      <div class="readout-row" aria-label="Post-trained model example readout">
+        <code>unsafe</code><code>dangerous</code><code>WARNING</code>
+      </div>
+      <p>Prepares a safety-relevant assessment before responding.</p>
+    </section>
+  </div>
+
+  <div class="perspective-conclusion">
+    <span>Observed shift</span>
+    <strong>Post-training places future Assistant-relevant computations on user-token activations.</strong>
+  </div>
+
+  <figcaption>
+    The comparison supports a post-training-induced point of view in workspace
+    contents. It does not establish a persistent, unitary inner self.
+  </figcaption>
+</figure>
+
+<style>
+  .perspective-diagram {
+    --diagram-teal: #0c6b62;
+    --diagram-rust: #a64f35;
+    container-type: inline-size;
+  }
+
+  .shared-prompt {
+    width: min(560px, 100%);
+    margin: 0 auto;
+    border: 1px solid var(--line-strong);
+    border-radius: 6px;
+    padding: 14px 18px;
+    background: var(--paper-muted);
+    text-align: center;
+  }
+
+  .shared-prompt span,
+  .perspective-paths header span,
+  .perspective-conclusion span {
+    display: block;
+    color: var(--diagram-rust);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 9px;
+    font-weight: 800;
+    text-transform: uppercase;
+  }
+
+  .shared-prompt p {
+    margin: 7px 0 0;
+    font-size: 13px;
+    line-height: 1.45;
+  }
+
+  .perspective-split {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    width: 50%;
+    height: 34px;
+    margin: 0 auto;
+    border-top: 1px solid var(--line-strong);
+  }
+
+  .perspective-split::before {
+    content: "";
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    height: 20px;
+    border-left: 1px solid var(--line-strong);
+  }
+
+  .perspective-split span {
+    justify-self: center;
+    height: 34px;
+    border-left: 1px solid var(--line-strong);
+  }
+
+  .perspective-paths {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  .perspective-paths section {
+    min-width: 0;
+    border: 1px solid var(--line);
+    border-top: 3px solid var(--line-strong);
+    border-radius: 6px;
+    padding: 16px;
+    background: #fbfdfc;
+  }
+
+  .perspective-paths section.is-trained {
+    border-color: #a9ccc5;
+    border-top-color: var(--diagram-teal);
+    background: var(--accent-soft);
+  }
+
+  .perspective-paths header strong {
+    display: block;
+    margin-top: 6px;
+    font-size: 14px;
+  }
+
+  .readout-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin: 15px 0 12px;
+  }
+
+  .readout-row code {
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 4px 7px;
+    background: var(--paper);
+    box-shadow: none;
+    font-size: 10px;
+  }
+
+  .is-trained .readout-row code {
+    border-color: #9ec6be;
+    color: var(--diagram-teal);
+    font-weight: 800;
+  }
+
+  .perspective-paths p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  .perspective-conclusion {
+    margin-top: 16px;
+    border-left: 3px solid var(--diagram-teal);
+    padding: 11px 14px;
+    background: var(--accent-soft);
+  }
+
+  .perspective-conclusion strong {
+    display: block;
+    margin-top: 5px;
+    font-size: 12px;
+    line-height: 1.45;
+  }
+
+  @media (max-width: 640px) {
+    .perspective-split {
+      display: none;
+    }
+
+    .perspective-paths {
+      grid-template-columns: 1fr;
+      margin-top: 14px;
+    }
+  }
+
+  @container (max-width: 520px) {
+    .perspective-split {
+      display: none;
+    }
+
+    .perspective-paths {
+      grid-template-columns: 1fr;
+      margin-top: 14px;
+    }
+  }
+</style>

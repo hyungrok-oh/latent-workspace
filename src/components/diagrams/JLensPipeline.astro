@@ -1,0 +1,312 @@
+<figure class="research-figure jlens-pipeline">
+  <div class="research-figure__header">
+    <span class="figure-kicker">J-lens pipeline</span>
+    <strong>Fit once, then reuse the lens</strong>
+  </div>
+
+  <div class="pipeline-phase">
+    <div class="phase-label">
+      <span>Phase 1</span>
+      <strong>Fit once per model</strong>
+      <small>Offline preparation</small>
+    </div>
+    <div class="phase-flow">
+      <div class="diagram-node is-input">
+        <span class="node-step">01</span>
+        <strong>Prompt corpus</strong>
+        <code>1,000 × 128 tokens</code>
+        <small>Many ordinary contexts</small>
+      </div>
+      <span class="diagram-arrow" aria-hidden="true">→</span>
+      <div class="diagram-node is-process">
+        <span class="node-step">02</span>
+        <strong>Average Jacobians</strong>
+        <code>E[∂h_target / ∂h_l]</code>
+        <small>Across prompts and positions</small>
+      </div>
+      <span class="diagram-arrow" aria-hidden="true">→</span>
+      <div class="diagram-node is-output">
+        <span class="node-step">03</span>
+        <strong>Layer lens</strong>
+        <code>J_l</code>
+        <small>One matrix for each layer</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="phase-divider" aria-hidden="true">
+    <span>reuse J_l</span>
+  </div>
+
+  <div class="pipeline-phase">
+    <div class="phase-label">
+      <span>Phase 2</span>
+      <strong>Read many activations</strong>
+      <small>Per prompt inference</small>
+    </div>
+    <div class="phase-flow is-four-step">
+      <div class="diagram-node is-input">
+        <span class="node-step">01</span>
+        <strong>Hidden state</strong>
+        <code>h_l,t</code>
+        <small>One layer and position</small>
+      </div>
+      <span class="diagram-arrow" aria-hidden="true">→</span>
+      <div class="diagram-node is-process">
+        <span class="node-step">02</span>
+        <strong>Transport</strong>
+        <code>J_l h_l,t</code>
+        <small>Map toward output geometry</small>
+      </div>
+      <span class="diagram-arrow" aria-hidden="true">→</span>
+      <div class="diagram-node is-process">
+        <span class="node-step">03</span>
+        <strong>Norm + unembed</strong>
+        <code>W_U norm(·)</code>
+        <small>Score the vocabulary</small>
+      </div>
+      <span class="diagram-arrow" aria-hidden="true">→</span>
+      <div class="token-output" aria-label="Example ranked token readout">
+        <span class="node-step">04</span>
+        <strong>Ranked readout</strong>
+        <ol>
+          <li><span>spider</span><b>1</b></li>
+          <li><span>web</span><b>2</b></li>
+          <li><span>eight</span><b>3</b></li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <figcaption>
+    Fitting estimates a context-averaged transport matrix. Readout applies that
+    fixed matrix to a new hidden state and returns vocabulary scores. The token
+    list is an interpretation interface, not a transcript of literal inner speech.
+  </figcaption>
+</figure>
+
+<style>
+  .jlens-pipeline {
+    --diagram-teal: #0c6b62;
+    --diagram-teal-soft: #e8f3f0;
+    --diagram-rust: #a64f35;
+    --diagram-rust-soft: #f7ebe6;
+    container-type: inline-size;
+  }
+
+  .pipeline-phase {
+    display: grid;
+    grid-template-columns: 150px minmax(0, 1fr);
+    gap: 20px;
+    align-items: stretch;
+  }
+
+  .phase-label {
+    border-right: 1px solid var(--line);
+    padding: 10px 18px 10px 0;
+  }
+
+  .phase-label span,
+  .node-step {
+    display: block;
+    color: var(--diagram-rust);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0;
+    text-transform: uppercase;
+  }
+
+  .phase-label strong {
+    display: block;
+    margin-top: 8px;
+    font-size: 14px;
+    line-height: 1.35;
+  }
+
+  .phase-label small,
+  .diagram-node small {
+    display: block;
+    margin-top: 6px;
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 1.4;
+  }
+
+  .phase-flow {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 22px minmax(0, 1.2fr) 22px minmax(0, 0.8fr);
+    gap: 7px;
+    align-items: stretch;
+  }
+
+  .phase-flow.is-four-step {
+    grid-template-columns: minmax(0, 0.9fr) 18px minmax(0, 0.9fr) 18px minmax(0, 1fr) 18px minmax(0, 1.05fr);
+  }
+
+  .diagram-node,
+  .token-output {
+    min-width: 0;
+    border: 1px solid #c8d9d4;
+    border-top: 3px solid var(--diagram-teal);
+    border-radius: 6px;
+    padding: 13px;
+    background: #fbfdfc;
+  }
+
+  .diagram-node.is-process {
+    background: var(--diagram-teal-soft);
+  }
+
+  .diagram-node.is-output,
+  .token-output {
+    border-color: #dcc4b9;
+    border-top-color: var(--diagram-rust);
+    background: var(--diagram-rust-soft);
+  }
+
+  .diagram-node strong,
+  .token-output > strong {
+    display: block;
+    margin: 8px 0 6px;
+    font-size: 13px;
+    line-height: 1.35;
+  }
+
+  .diagram-node code {
+    display: block;
+    overflow-wrap: anywhere;
+    border: 0;
+    padding: 0;
+    background: transparent;
+    box-shadow: none;
+    color: var(--diagram-teal);
+    font-size: 11px;
+  }
+
+  .diagram-arrow {
+    align-self: center;
+    color: var(--line-strong);
+    font-size: 18px;
+    font-weight: 800;
+    text-align: center;
+  }
+
+  .phase-divider {
+    display: grid;
+    grid-template-columns: 150px minmax(0, 1fr);
+    margin: 13px 0;
+  }
+
+  .phase-divider::before {
+    content: "";
+  }
+
+  .phase-divider span {
+    position: relative;
+    display: block;
+    border-top: 1px dashed var(--line-strong);
+    color: var(--muted);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 9px;
+    text-align: center;
+    text-transform: uppercase;
+  }
+
+  .phase-divider span::before {
+    content: "";
+    position: absolute;
+    top: -5px;
+    left: calc(50% - 4px);
+    width: 7px;
+    height: 7px;
+    border-right: 1px solid var(--line-strong);
+    border-bottom: 1px solid var(--line-strong);
+    background: var(--paper);
+    transform: rotate(45deg);
+  }
+
+  .phase-divider span::after {
+    content: attr(data-label);
+  }
+
+  .token-output ol {
+    display: grid;
+    gap: 4px;
+    margin: 8px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .token-output li {
+    display: flex;
+    justify-content: space-between;
+    margin: 0;
+    border-top: 1px solid rgba(166, 79, 53, 0.18);
+    padding-top: 4px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 10px;
+  }
+
+  .token-output b {
+    color: var(--diagram-rust);
+  }
+
+  @media (max-width: 760px) {
+    .pipeline-phase {
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .phase-label {
+      border-right: 0;
+      border-bottom: 1px solid var(--line);
+      padding: 0 0 10px;
+    }
+
+    .phase-flow,
+    .phase-flow.is-four-step {
+      grid-template-columns: 1fr;
+    }
+
+    .diagram-arrow {
+      min-height: 16px;
+      line-height: 16px;
+      transform: rotate(90deg);
+    }
+
+    .phase-divider {
+      grid-template-columns: 1fr;
+      margin: 18px 0;
+    }
+  }
+
+  @container (max-width: 620px) {
+    .pipeline-phase {
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .phase-label {
+      border-right: 0;
+      border-bottom: 1px solid var(--line);
+      padding: 0 0 10px;
+    }
+
+    .phase-flow,
+    .phase-flow.is-four-step {
+      grid-template-columns: 1fr;
+    }
+
+    .diagram-arrow {
+      min-height: 16px;
+      line-height: 16px;
+      transform: rotate(90deg);
+    }
+
+    .phase-divider {
+      grid-template-columns: 1fr;
+      margin: 18px 0;
+    }
+  }
+</style>

@@ -1,0 +1,227 @@
+<figure class="research-figure reflection-path">
+  <div class="research-figure__header">
+    <span class="figure-kicker">Causal hypothesis</span>
+    <strong>Does workspace content mediate behavior?</strong>
+  </div>
+
+  <div class="causal-track">
+    <div class="causal-node">
+      <span>01 · Training signal</span>
+      <strong>Counterfactual reflection</strong>
+      <p>Teach ethical reflection only in hypothetical continuations.</p>
+    </div>
+    <div class="causal-link"><span>changes</span>→</div>
+    <div class="causal-node is-workspace">
+      <span>02 · Internal mediator</span>
+      <strong>Ethics-related J-space content</strong>
+      <p><code>honest</code> · <code>ethical</code> · <code>transparent</code></p>
+    </div>
+    <div class="causal-link"><span>supports</span>→</div>
+    <div class="causal-node is-outcome">
+      <span>03 · Observed outcome</span>
+      <strong>Lower dishonesty</strong>
+      <p>Without an explicit reflection prompt at evaluation time.</p>
+    </div>
+  </div>
+
+  <div class="ablation-test">
+    <div class="ablation-label">
+      <span>Causal test</span>
+      <strong>Remove the proposed mediator</strong>
+    </div>
+    <div class="ablation-action">
+      <span class="cut-mark" aria-hidden="true">×</span>
+      <div>
+        <strong>Ablate ethics-related lens directions</strong>
+        <p>The trained model loses most of the fabrication improvement and part of the deception improvement.</p>
+      </div>
+    </div>
+  </div>
+
+  <figcaption>
+    The ablation result supports mediation through J-space, but the partial and
+    asymmetric reversals show that this is not the only behavioral pathway.
+  </figcaption>
+</figure>
+
+<style>
+  .reflection-path {
+    --diagram-teal: #0c6b62;
+    --diagram-rust: #a64f35;
+    --diagram-green: #58775f;
+    container-type: inline-size;
+  }
+
+  .causal-track {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 54px minmax(0, 1.15fr) 54px minmax(0, 1fr);
+    gap: 8px;
+    align-items: stretch;
+  }
+
+  .causal-node {
+    min-width: 0;
+    border: 1px solid var(--line);
+    border-top: 3px solid var(--line-strong);
+    border-radius: 6px;
+    padding: 15px;
+    background: #fbfdfc;
+  }
+
+  .causal-node.is-workspace {
+    border-color: #a9ccc5;
+    border-top-color: var(--diagram-teal);
+    background: var(--accent-soft);
+  }
+
+  .causal-node.is-outcome {
+    border-color: #b9c9bc;
+    border-top-color: var(--diagram-green);
+    background: #edf3ee;
+  }
+
+  .causal-node span,
+  .ablation-label span {
+    display: block;
+    color: var(--diagram-rust);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 9px;
+    font-weight: 800;
+    text-transform: uppercase;
+  }
+
+  .causal-node strong {
+    display: block;
+    margin-top: 8px;
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  .causal-node p,
+  .ablation-action p {
+    margin: 8px 0 0;
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 1.5;
+  }
+
+  .causal-link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--line-strong);
+    font-size: 20px;
+    font-weight: 800;
+  }
+
+  .causal-link span {
+    margin-bottom: 5px;
+    color: var(--muted);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 8px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .ablation-test {
+    display: grid;
+    grid-template-columns: 180px minmax(0, 1fr);
+    gap: 18px;
+    align-items: center;
+    margin-top: 16px;
+    border: 1px dashed #c99584;
+    border-radius: 6px;
+    padding: 13px 15px;
+    background: var(--accent-2-soft);
+  }
+
+  .ablation-label {
+    border-right: 1px solid #dcc4b9;
+    padding-right: 16px;
+  }
+
+  .ablation-label strong {
+    display: block;
+    margin-top: 5px;
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
+  .ablation-action {
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr);
+    gap: 11px;
+    align-items: center;
+  }
+
+  .cut-mark {
+    display: grid;
+    width: 28px;
+    height: 28px;
+    place-items: center;
+    border: 1px solid #c99584;
+    border-radius: 50%;
+    color: var(--diagram-rust);
+    font-size: 17px;
+    font-weight: 800;
+  }
+
+  .ablation-action strong {
+    font-size: 12px;
+  }
+
+  .ablation-action p {
+    margin-top: 4px;
+  }
+
+  @media (max-width: 720px) {
+    .causal-track {
+      grid-template-columns: 1fr;
+    }
+
+    .causal-link {
+      min-height: 24px;
+      transform: rotate(90deg);
+    }
+
+    .causal-link span {
+      display: none;
+    }
+
+    .ablation-test {
+      grid-template-columns: 1fr;
+    }
+
+    .ablation-label {
+      border-right: 0;
+      border-bottom: 1px solid #dcc4b9;
+      padding: 0 0 10px;
+    }
+  }
+
+  @container (max-width: 620px) {
+    .causal-track {
+      grid-template-columns: 1fr;
+    }
+
+    .causal-link {
+      min-height: 24px;
+      transform: rotate(90deg);
+    }
+
+    .causal-link span {
+      display: none;
+    }
+
+    .ablation-test {
+      grid-template-columns: 1fr;
+    }
+
+    .ablation-label {
+      border-right: 0;
+      border-bottom: 1px solid #dcc4b9;
+      padding: 0 0 10px;
+    }
+  }
+</style>

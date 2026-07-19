@@ -257,6 +257,7 @@ h3 {
 
 .article-shell {
   display: grid;
+  min-width: 0;
   grid-template-columns: minmax(240px, 360px) minmax(0, 760px);
   gap: clamp(28px, 6vw, 72px);
   align-items: start;
@@ -264,6 +265,7 @@ h3 {
 
 .article-header {
   position: sticky;
+  min-width: 0;
   top: 104px;
 }
 
@@ -316,6 +318,8 @@ h3 {
 }
 
 .article-content {
+  min-width: 0;
+  max-width: 100%;
   padding: 34px;
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -541,6 +545,8 @@ h3 {
 }
 
 .research-figure {
+  min-width: 0;
+  max-width: 100%;
   margin: 32px 0 38px;
   border-top: 1px solid var(--line-strong);
   border-bottom: 1px solid var(--line-strong);
@@ -1139,6 +1145,17 @@ h3 {
 
   .article-content {
     padding: 22px;
+  }
+
+  .research-figure__header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+    justify-content: start;
+  }
+
+  .research-figure__header strong {
+    overflow-wrap: anywhere;
   }
 
   .article-content h2 {
